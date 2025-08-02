@@ -22,9 +22,9 @@
 <body>
 
 <div id="main-container">
-    <div id="header">Consola de Interacción SYRÓ v2.0</div>
+    <div id="header">Consola de Interacción SYRÓ v2.1</div>
     <div id="chatbox">
-        <div class="syro-msg">SYRÓ v1.7 (Local) listo. Conexión directa establecida.</div>
+        <div class="syro-msg">SYRÓ v2.1 (Vercel Backend) listo. Conexión directa establecida.</div>
     </div>
     <div id="input-area">
         <form id="input-form" onsubmit="sendMessage(event)">
@@ -45,12 +45,10 @@
 </div>
 
 <script>
-    // ¡¡¡ IMPORTANTE !!!
-    // Pega aquí la URL de tu Web App. Prueba primero con la que termina en /exec.
-    // Si esa falla, usa la que termina en /dev.
-    const SYRO_API_URL = "https://script.google.com/macros/s/AKfycbzJ1hpY-UfXHi-EGCZ4TKenkitAM-4Cr3xK03bd4ZDfLf1jOikXBn7VLEA6SzG_xjSQaA/exec";
+    // --- PUNTO CRÍTICO DE CONFIGURACIÓN ---
+    const SYRO_API_URL = "https://syro-console.vercel.app/api/syro";
 
-    // --- El resto del script no necesita cambios ---
+    // --- El resto del script está actualizado y corregido ---
     const chatbox = document.getElementById('chatbox');
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
@@ -66,16 +64,12 @@
     function sendMessage(event) {
         event.preventDefault();
         const userText = userInput.value.trim();
-        if (!userText || SYRO_API_URL === "URL_DE_TU_WEB_APP_AQUI") {
-            if (SYRO_API_URL === "URL_DE_TU_WEB_APP_AQUI") {
-                addMessage("Error de configuración: Debes pegar la URL de la API de SYRÓ en el archivo syro_console.html.", false);
-            }
-            return;
-        }
+        if (!userText) return;
 
         addMessage(userText, true);
         userInput.value = "";
         sendButton.disabled = true;
+        sendButton.textContent = "Procesando...";
 
         const isChainMode = document.getElementById('chainMode').checked;
         const selectedMode = document.querySelector('input[name="syro-mode"]:checked').value;
@@ -87,28 +81,34 @@
         }
         const finalUrl = `${SYRO_API_URL}?cmd=${encodeURIComponent(command)}`;
 
-        addMessage("Procesando...", false);
-        const thinkingMsg = chatbox.lastChild;
+        const thinkingMsg = document.createElement('div');
+        thinkingMsg.className = 'msg syro-msg';
+        thinkingMsg.textContent = '...';
+        chatbox.appendChild(thinkingMsg);
+        chatbox.scrollTop = chatbox.scrollHeight;
 
         fetch(finalUrl)
             .then(res => {
-                if (!res.ok) { throw new Error(`Error de red: ${res.status} ${res.statusText}`); }
+                if (!res.ok) { throw new Error(`Error de Red (${res.status}): ${res.statusText}`); }
                 return res.json();
             })
             .then(data => {
-                thinkingMsg.textContent = data.data || data.message;
+                if (data.status === 'success') {
+                    thinkingMsg.textContent = data.data || data.message;
+                } else {
+                    thinkingMsg.textContent = `Error de SYRÓ: ${data.message}`;
+                }
             })
             .catch(err => {
-                thinkingMsg.textContent = `Error Crítico: ${err.message}. Verifica la URL de la API y la consola de Apps Script.`;
+                thinkingMsg.textContent = `Error Crítico de Conexión: ${err.message}. Verifica que el backend en Vercel esté desplegado.`;
             })
             .finally(() => {
                 sendButton.disabled = false;
+                sendButton.textContent = "Enviar";
                 userInput.focus();
             });
     }
 </script>
 
 </body>
-
 </html>
-
