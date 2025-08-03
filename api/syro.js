@@ -8,7 +8,6 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // --- NÚCLEO: Handler Principal de la API (NAOS) ---
-// Este es el punto de entrada para todas las solicitudes a la función serverless de Vercel.
 module.exports = async (req, res) => {
     // Permitir CORS para que el frontend pueda llamar a la API
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -24,10 +23,24 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
 
+    // --- Parseo de JSON ---
+    // Vercel no parsea el body automáticamente. Este bloque lo soluciona.
+    if (req.method === 'POST' && typeof req.body !== 'object') {
+        try {
+            // req.body llega como un string, necesitamos convertirlo a JSON.
+            req.body = JSON.parse(req.body); 
+        } catch (e) {
+            // Si el cuerpo no es JSON válido, el frontend está enviando mal los datos.
+            return res.status(400).json({ success: false, error: 'Cuerpo de la solicitud mal formado.' });
+        }
+    }
+    // --- Fin del Bloque de Corrección ---
+
     try {
         const command = req.body.command;
         if (!command) {
-            throw new Error("Comando no proporcionado en el cuerpo de la solicitud.");
+            // Ahora, si el comando no existe, es porque no se envió en el JSON.
+            throw new Error("El campo 'command' no se encontró en el cuerpo de la solicitud JSON.");
         }
 
         // Registrar el evento de comando recibido en la base de datos (VORO)
