@@ -1,5 +1,14 @@
 {
+  "name": "syro-console-backend",
+  "version": "1.0.0",
+  "description": "Serverless backend for SYRO",
+  "main": "api/syro.js",
   "dependencies": {
-  "@supabase/supabase-js": "^2.43.4" 
-}
+    "@supabase/supabase-js": "^2.43.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Roman",
+  "license": "ISC"
 }

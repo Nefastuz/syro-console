@@ -152,5 +152,3 @@ async function createClickUpTask(params) {
     await logEvent('ClickUpTaskCreated', `Tarea '${params.TASK_NAME}' creada con ID: ${data.id}`, 'createClickUpTask');
     return data;
 }
-
-// Aquí irían las funciones del Módulo KHA (Gemini API), etc.
