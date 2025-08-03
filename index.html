@@ -3,112 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consola SYRÓ</title>
+    <title>Consola de Interacción SYRÓ</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
-        #main-container { width: 100%; max-width: 600px; height: 90vh; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-        #header { padding: 15px; border-bottom: 1px solid #ddd; font-size: 1.2em; font-weight: bold; color: #333; }
-        #chatbox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        #input-area { padding: 15px; border-top: 1px solid #ddd; }
-        #input-form { display: flex; gap: 10px; }
-        #userInput { flex: 1; border: 1px solid #ccc; padding: 10px; border-radius: 18px; }
-        #sendButton { background-color: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 18px; font-weight: bold; }
-        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12px; color: #555; padding: 0 5px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.4; word-wrap: break-word; }
-        .user-msg { background-color: #007bff; color: white; align-self: flex-end; }
-        .syro-msg { background-color: #e9ecef; color: #333; align-self: flex-start; white-space: pre-wrap; }
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #console-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #ffffff;
+        }
+        #status-bar {
+            font-size: 0.9em;
+            color: #888;
+        }
+        #response-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .message-wrapper {
+            max-width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .user {
+            background-color: #007bff;
+            color: white;
+            border-bottom-right-radius: 4px;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .syro {
+            background-color: #333;
+            color: #e0e0e0;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+        .syro-error {
+            background-color: #5c1a1a;
+            color: #ffcccc;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+        #input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #333;
+        }
+        #command-input {
+            flex-grow: 1;
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: #e0e0e0;
+            outline: none;
+            font-size: 1em;
+        }
+        #send-button {
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        #send-button:hover {
+            background-color: #0056b3;
+        }
+        #send-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
-
-<div id="main-container">
-    <div id="header">Consola de Interacción SYRÓ v2.1</div>
-    <div id="chatbox">
-        <div class="syro-msg">SYRÓ v2.1 (Vercel Backend) listo. Conexión directa establecida.</div>
-    </div>
-    <div id="input-area">
-        <form id="input-form" onsubmit="sendMessage(event)">
-            <input type="text" id="userInput" placeholder="Pregunta o instruye a SYRÓ..." autocomplete="off">
-            <button type="submit" id="sendButton">Enviar</button>
-        </form>
-        <div class="controls">
-            <div>
-                <input type="radio" id="mode-synthesis" name="syro-mode" value="SYNTESIS" checked> <label for="mode-synthesis">Síntesis</label>
-                <input type="radio" id="mode-kha" name="syro-mode" value="KHA"> <label for="mode-kha">KHA</label>
-                <input type="radio" id="mode-mos" name="syro-mode" value="MOS"> <label for="mode-mos">MOS</label>
-            </div>
-            <div>
-                <input type="checkbox" id="chainMode"> <label for="chainMode">Modo Autónomo</label>
-            </div>
+    <div id="console-container">
+        <div id="header">
+            <h1>Consola de Interacción SYRÓ v2.1</h1>
+            <div id="status-bar">SYRÓ v2.1 (Vercel Backend) listo. Conexión directa establecida.</div>
+        </div>
+        <div id="response-container">
+            <!-- Los mensajes se insertarán aquí dinámicamente -->
+        </div>
+        <div id="input-area">
+            <input type="text" id="command-input" placeholder="Pregunta o instruye a SYRÓ..." autocomplete="off">
+            <button id="send-button">Enviar</button>
         </div>
     </div>
-</div>
 
-<script>
-    // --- PUNTO CRÍTICO DE CONFIGURACIÓN ---
-    const SYRO_API_URL = "https://syro-console.vercel.app/api/syro";
+    <script>
+        const commandInput = document.getElementById('command-input');
+        const sendButton = document.getElementById('send-button');
 
-    // --- El resto del script está actualizado y corregido ---
-    const chatbox = document.getElementById('chatbox');
-    const userInput = document.getElementById('userInput');
-    const sendButton = document.getElementById('sendButton');
+        sendButton.addEventListener('click', () => {
+            if (commandInput.value.trim() !== '') {
+                askSyro(commandInput.value.trim());
+            }
+        });
 
-    function addMessage(text, isUser) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = isUser ? 'msg user-msg' : 'msg syro-msg';
-        msgDiv.textContent = text;
-        chatbox.appendChild(msgDiv);
-        chatbox.scrollTop = chatbox.scrollHeight;
-    }
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && commandInput.value.trim() !== '') {
+                askSyro(commandInput.value.trim());
+            }
+        });
 
-    function sendMessage(event) {
-        event.preventDefault();
-        const userText = userInput.value.trim();
-        if (!userText) return;
-
-        addMessage(userText, true);
-        userInput.value = "";
-        sendButton.disabled = true;
-        sendButton.textContent = "Procesando...";
-
-        const isChainMode = document.getElementById('chainMode').checked;
-        const selectedMode = document.querySelector('input[name="syro-mode"]:checked').value;
-        const action = isChainMode ? "EXECUTE_CHAIN" : "ASK_SYRO";
-        const paramName = isChainMode ? "INSTRUCTION" : "PROMPT";
-        let command = `${action}::${paramName}="${userText}"`;
-        if (action === 'ASK_SYRO') {
-            command += `::MODE=${selectedMode}`;
+        function displayMessage(text, sender) {
+            const container = document.getElementById('response-container');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = text;
+            
+            wrapper.appendChild(messageDiv);
+            
+            // Inserta el nuevo mensaje al principio (ya que el contenedor está en flex-direction: column-reverse)
+            container.insertBefore(wrapper, container.firstChild);
         }
-        const finalUrl = `${SYRO_API_URL}?cmd=${encodeURIComponent(command)}`;
 
-        const thinkingMsg = document.createElement('div');
-        thinkingMsg.className = 'msg syro-msg';
-        thinkingMsg.textContent = '...';
-        chatbox.appendChild(thinkingMsg);
-        chatbox.scrollTop = chatbox.scrollHeight;
+        // ---------- ESTA ES LA FUNCIÓN CORREGIDA ----------
+        async function askSyro(inputValue) {
+            const sendButton = document.getElementById('send-button');
+            const responseContainer = document.getElementById('response-container');
+            
+            displayMessage(inputValue, 'user');
+            sendButton.disabled = true;
+            sendButton.textContent = 'Procesando...';
+            
+            document.getElementById('command-input').value = '';
 
-        fetch(finalUrl)
-            .then(res => {
-                if (!res.ok) { throw new Error(`Error de Red (${res.status}): ${res.statusText}`); }
-                return res.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    thinkingMsg.textContent = data.data || data.message;
-                } else {
-                    thinkingMsg.textContent = `Error de SYRÓ: ${data.message}`;
+            const apiEndpoint = 'https://syro-console.vercel.app/api/syro';
+
+            try {
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: inputValue })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || `Error del servidor: ${response.status}`);
                 }
-            })
-            .catch(err => {
-                thinkingMsg.textContent = `Error Crítico de Conexión: ${err.message}. Verifica que el backend en Vercel esté desplegado.`;
-            })
-            .finally(() => {
-                sendButton.disabled = false;
-                sendButton.textContent = "Enviar";
-                userInput.focus();
-            });
-    }
-</script>
 
+                const prettyData = JSON.stringify(result.data, null, 2);
+                displayMessage(`Éxito:\n${prettyData}`, 'syro');
+
+            } catch (error) {
+                displayMessage(`Error Crítico: ${error.message}`, 'syro-error');
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Enviar';
+            }
+        }
+    </script>
 </body>
 </html>
