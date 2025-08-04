@@ -1,3 +1,9 @@
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
 const { GoogleAuth } = require('google-auth-library');
 
 // --- INICIO DE LA FUNCIÓN SERVERLESS ---
@@ -17,15 +23,7 @@ export default async function handler(req, res) {
   }
 
   
-  // Parseo explícito y seguro del cuerpo de la solicitud
-  let body;
-  try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  } catch (e) {
-    return res.status(400).json({ message: 'Cuerpo de la solicitud JSON inválido.' });
-  }
-  
-  const { prompt } = body;
+  const { prompt } = req.body;
   
 
   if (!prompt) {
