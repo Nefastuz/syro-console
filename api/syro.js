@@ -75,7 +75,21 @@ export default async function handler(req, res) {
     // Extraer y combinar el texto de la respuesta
     const fullText = data.map(chunk => chunk.candidates[0].content.parts[0].text).join('');
 
-    res.status(200).json({ text: fullText });
+    
+    // Envolver la respuesta para que coincida con la estructura que el frontend original espera
+    const finalResponse = {
+      predictions: [{
+        candidates: [{
+          content: {
+            parts: [{
+              text: fullText
+            }]
+          }
+        }]
+      }]
+    };
+    res.status(200).json(finalResponse);
+    
 
   } catch (error) {
     console.error('Error en el handler de la API:', error.message);
