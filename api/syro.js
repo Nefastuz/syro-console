@@ -8,7 +8,7 @@ const { GoogleAuth } = require('google-auth-library');
 // --- INICIO DE LA FUNCIÓN SERVERLESS ---
 export default async function handler(req, res) {
   
-  // Manejar la solicitud preflight de CORS
+  // CORS Preflight
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -17,7 +17,6 @@ export default async function handler(req, res) {
     return;
   }
   
-  // Permitir CORS para la solicitud POST real
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   if (req.method !== 'POST') {
@@ -25,13 +24,11 @@ export default async function handler(req, res) {
   }
 
   const { prompt } = req.body;
-  
   if (!prompt) {
     return res.status(400).json({ message: 'Prompt es requerido' });
   }
 
   try {
-    // --- FASE 1: OBTENER TOKEN DE AUTENTICACIÓN ---
     const auth = new GoogleAuth({
       credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON),
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
@@ -39,19 +36,26 @@ export default async function handler(req, res) {
     const client = await auth.getClient();
     const accessToken = (await client.getAccessToken()).token;
 
-    // --- FASE 2: REALIZAR LLAMADA FETCH AUTENTICADA ---
+    // --- INICIO DEL CÓDIGO DE EXPERIMENTO ---
     const project = 'syro-467919';
-    const location = 'us-central1';
-    const model = 'gemini-2.0-flash-001'; // <-- EL MODELO CORRECTO
+    const location = 'us-central1'; // Mantenemos la región original
+    const model = 'gemini-1.0-pro';    // Modelo del tutorial
 
-    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:streamGenerateContent`;
+    // Endpoint con la acción :predict del tutorial
+    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:predict`;
 
     const body = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }]
+      instances: [{
+        content: {
+          parts: [{ text: prompt }]
+        }
+      }],
+      parameters: {
+        temperature: 0.2,
+        maxOutputTokens: 256,
+        topK: 40,
+        topP: 0.95
+      }
     };
 
     const response = await fetch(url, {
@@ -69,9 +73,11 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    
+    // El formato de respuesta de :predict es diferente
+    const fullText = data.predictions[0].content.parts[0].text;
 
-    const fullText = data.map(chunk => chunk.candidates[0].content.parts[0].text).join('');
-
+    // Adaptamos la respuesta final para que nuestro frontend la entienda
     const finalResponse = {
         candidates: [{
           content: {
@@ -81,10 +87,12 @@ export default async function handler(req, res) {
           }
         }]
     };
+    // --- FIN DEL CÓDIGO DE EXPERIMENTO ---
+
     res.status(200).json(finalResponse);
 
   } catch (error) {
-    console.error('Error en el handler de la API:', error.message);
+    console.error('Error en el handler de la API:', error);
     res.status(500).json({ 
       message: 'Error interno del servidor al procesar la solicitud.',
       error: error.message 
