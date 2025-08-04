@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     // --- FASE 2: REALIZAR LLAMADA FETCH AUTENTICADA ---
     const project = 'syro-467919';
     const location = 'us-central1';
-    const model = 'gemini-1.0-pro'; // El modelo para este endpoint es más simple
+    const model = 'gemini-pro'; 
 
     const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:streamGenerateContent`;
 
