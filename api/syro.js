@@ -1,5 +1,10 @@
+// HACK: Dummy require to force Vercel bundler to include the module.
+require('@google-cloud/aiplatform/helpers');
+
 // Importar el cliente de Supabase
 const { createClient } = require('@supabase/supabase-js');
+const { PredictionServiceClient } = require('@google-cloud/aiplatform');
+const {fromObject} = require('@google-cloud/aiplatform/helpers');
 
 // Inicializar el cliente de Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -75,6 +80,9 @@ async function processCommand(command) {
         case 'CREATE_CLICKUP_TASK':
             return await createClickUpTask(params);
 
+        case 'ASK_SYRO':
+            return await callGeminiAPI(params);
+
         default:
             throw new Error(`Acción desconocida: ${action}`);
     }
@@ -136,4 +144,47 @@ async function createClickUpTask(params) {
     const data = await response.json();
     await logEvent('ClickUpTaskCreated', `Tarea '${params.TASK_NAME}' creada con ID: ${data.id}`, 'createClickUpTask');
     return data;
+}
+
+async function callGeminiAPI(params) {
+    if (!params.PROMPT) throw new Error('El parámetro PROMPT es obligatorio para ASK_SYRO.');
+    
+    await logEvent('VertexAICall', `Llamando a Vertex AI con: ${params.PROMPT}`, 'callGeminiAPI');
+
+    const clientOptions = {
+        apiEndpoint: 'us-central1-aiplatform.googleapis.com'
+    };
+    const predictionServiceClient = new PredictionServiceClient(clientOptions);
+
+    const project = 'syro-467919';
+    const location = 'us-central1';
+    const model = 'gemini-1.0-pro';
+    const endpoint = `projects/${project}/locations/${location}/publishers/google/models/${model}`;
+
+    const instances = [fromObject({ content: { parts: [{ text: params.PROMPT }] } })];
+    const parameters = fromObject({
+        temperature: 0.5,
+        maxOutputTokens: 1024,
+        topP: 0.8,
+        topK: 40
+    });
+
+    const request = {
+        endpoint,
+        instances,
+        parameters,
+    };
+
+    try {
+        const [response] = await predictionServiceClient.predict(request);
+        const prediction = response.predictions[0];
+        const extractedText = prediction.structValue.fields.content.structValue.fields.parts.listValue.values[0].structValue.fields.text.stringValue;
+        
+        await logEvent('VertexAISuccess', 'Respuesta de Vertex AI recibida', 'callGeminiAPI');
+        return { success: true, responseText: extractedText };
+    } catch (error) {
+        console.error('Error al llamar a la API de Vertex AI:', error);
+        await logEvent('VertexAIError', `Fallo en la llamada a Vertex AI: ${error.message}`, 'callGeminiAPI');
+        throw new Error(`Error en la API de Vertex AI: ${error.message}`);
+    }
 }
