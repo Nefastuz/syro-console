@@ -1,4 +1,3 @@
-
 export const config = {
   api: {
     bodyParser: true,
@@ -14,18 +13,19 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.status(204).end(); // 204 No Content es más apropiado para preflights
+    res.status(204).end();
     return;
   }
+  
+  // Permitir CORS para la solicitud POST real
+  res.setHeader('Access-Control-Allow-Origin', '*');
 
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  
   const { prompt } = req.body;
   
-
   if (!prompt) {
     return res.status(400).json({ message: 'Prompt es requerido' });
   }
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     // --- FASE 2: REALIZAR LLAMADA FETCH AUTENTICADA ---
     const project = 'syro-467919';
     const location = 'us-central1';
-    const model = 'gemini-pro'; 
+    const model = 'gemini-1.5-flash-001'; // <-- EL MODELO CORRECTO
 
     const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:streamGenerateContent`;
 
@@ -70,13 +70,9 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Extraer y combinar el texto de la respuesta
     const fullText = data.map(chunk => chunk.candidates[0].content.parts[0].text).join('');
 
-    
-    // Envolver la respuesta para que coincida con la estructura que el frontend original espera
     const finalResponse = {
-      predictions: [{
         candidates: [{
           content: {
             parts: [{
@@ -84,10 +80,8 @@ export default async function handler(req, res) {
             }]
           }
         }]
-      }]
     };
     res.status(200).json(finalResponse);
-    
 
   } catch (error) {
     console.error('Error en el handler de la API:', error.message);
@@ -97,4 +91,3 @@ export default async function handler(req, res) {
     });
   }
 }
-// --- FIN DE LA FUNCIÓN SERVERLESS ---
