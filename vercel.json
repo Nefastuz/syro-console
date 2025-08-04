@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/syro.js": {
-      "includeFiles": "node_modules/@google-cloud/aiplatform/**"
-    }
-  }
-}
