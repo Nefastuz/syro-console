@@ -5,7 +5,10 @@ export default async function handler(req, res) {
   
   // Manejar la solicitud preflight de CORS
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.status(204).end(); // 204 No Content es más apropiado para preflights
     return;
   }
 
@@ -13,7 +16,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const { prompt } = req.body;
+  
+  // Parseo explícito y seguro del cuerpo de la solicitud
+  let body;
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  } catch (e) {
+    return res.status(400).json({ message: 'Cuerpo de la solicitud JSON inválido.' });
+  }
+  
+  const { prompt } = body;
+  
 
   if (!prompt) {
     return res.status(400).json({ message: 'Prompt es requerido' });
