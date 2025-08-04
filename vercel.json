@@ -1,8 +1,7 @@
 {
   "functions": {
     "api/syro.js": {
-      "memory": 1024,
-      "maxDuration": 15
+      "includeFiles": "node_modules/@google-cloud/aiplatform/**"
     }
   }
 }
