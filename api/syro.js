@@ -1,6 +1,3 @@
-// HACK: Dummy require to force Vercel bundler to include the module.
-require('@google-cloud/aiplatform/helpers');
-
 // Importar el cliente de Supabase
 const { createClient } = require('@supabase/supabase-js');
 const { PredictionServiceClient } = require('@google-cloud/aiplatform');
