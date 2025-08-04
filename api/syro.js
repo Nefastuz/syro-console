@@ -6,6 +6,7 @@ export const config = {
 const { GoogleAuth } = require('google-auth-library');
 
 // --- INICIO DE LA FUNCIÓN SERVERLESS ---
+// Forzando re-despliegue 2024-05-23
 export default async function handler(req, res) {
   
   // CORS Preflight
