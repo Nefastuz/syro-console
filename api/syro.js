@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     const accessToken = (await client.getAccessToken()).token;
 
     // --- INICIO DEL CÓDIGO DE EXPERIMENTO ---
-    const project = 'syro-467919';
+    const project = 'syro-fresh-start';
     const location = 'us-central1'; // Mantenemos la región original
     const model = 'gemini-1.0-pro';    // Modelo del tutorial
 
