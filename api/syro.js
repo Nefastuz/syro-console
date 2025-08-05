@@ -6,7 +6,6 @@ export const config = {
 const { GoogleAuth } = require('google-auth-library');
 
 // --- INICIO DE LA FUNCIÓN SERVERLESS ---
-// Forzando re-despliegue 2024-05-23
 export default async function handler(req, res) {
   
   // CORS Preflight
@@ -30,19 +29,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    // --- NUEVA AUTENTICACIÓN FEDERADA ---
+    // La librería detectará automáticamente las credenciales del entorno
     const auth = new GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON),
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     });
+    // --- FIN DE LA NUEVA AUTENTICACIÓN ---
+    
     const client = await auth.getClient();
     const accessToken = (await client.getAccessToken()).token;
 
-    // --- INICIO DEL CÓDIGO DE EXPERIMENTO ---
     const project = 'syro-fresh-start';
-    const location = 'us-central1'; // Mantenemos la región original
-    const model = 'gemini-1.0-pro';    // Modelo del tutorial
+    const location = 'us-central1';
+    const model = 'gemini-1.0-pro';
 
-    // Endpoint con la acción :predict del tutorial
     const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:predict`;
 
     const body = {
@@ -75,10 +75,8 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     
-    // El formato de respuesta de :predict es diferente
     const fullText = data.predictions[0].content.parts[0].text;
 
-    // Adaptamos la respuesta final para que nuestro frontend la entienda
     const finalResponse = {
         candidates: [{
           content: {
@@ -88,7 +86,6 @@ export default async function handler(req, res) {
           }
         }]
     };
-    // --- FIN DEL CÓDIGO DE EXPERIMENTO ---
 
     res.status(200).json(finalResponse);
 
