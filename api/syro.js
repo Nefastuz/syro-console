@@ -8,7 +8,7 @@ const { GoogleAuth } = require('google-auth-library');
 // --- INICIO DE LA FUNCIÓN SERVERLESS ---
 export default async function handler(req, res) {
   
-  // CORS Preflight
+  // CORS Preflight & Headers
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,7 +16,6 @@ export default async function handler(req, res) {
     res.status(204).end();
     return;
   }
-  
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   if (req.method !== 'POST') {
@@ -29,19 +28,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    // --- NUEVA AUTENTICACIÓN FEDERADA ---
-    // La librería detectará automáticamente las credenciales del entorno
+    // --- AUTENTICACIÓN FINAL Y CORRECTA PARA VERCEL ---
     const auth = new GoogleAuth({
+      credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON),
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     });
-    // --- FIN DE LA NUEVA AUTENTICACIÓN ---
+    // --- FIN ---
     
     const client = await auth.getClient();
     const accessToken = (await client.getAccessToken()).token;
 
-    const project = 'syro-fresh-start';
+    const project = 'syro-fresh-start'; // Apuntando al nuevo proyecto limpio
     const location = 'us-central1';
-    const model = 'gemini-1.0-pro';
+    const model = 'gemini-1.0-pro'; // Usando el modelo estable
 
     const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:predict`;
 
@@ -74,15 +73,12 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    
     const fullText = data.predictions[0].content.parts[0].text;
 
     const finalResponse = {
         candidates: [{
           content: {
-            parts: [{
-              text: fullText
-            }]
+            parts: [{ text: fullText }]
           }
         }]
     };
