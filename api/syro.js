@@ -23,18 +23,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  // --- INICIO DE LA MODIFICACIÓN DE DEBUG ---
-  // Vamos a inspeccionar el cuerpo de la petición que llega al servidor.
-  console.log('Cuerpo de la petición recibido:', req.body);
-  // --- FIN DE LA MODIFICACIÓN DE DEBUG ---
+  // --- INICIO DE LA CORRECCIÓN FINAL ---
+  // Aceptamos el cuerpo de la petición que llega como { command: '...' } y lo asignamos a 'prompt'.
+  const prompt = req.body.command;
+  // --- FIN DE LA CORRECCIÓN FINAL ---
 
-  const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ message: 'Prompt es requerido' });
   }
 
   try {
-    // ... el resto del código permanece igual ...
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
       baseURL: process.env.OPENAI_API_BASE,
