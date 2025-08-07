@@ -5,192 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consola de Interacción SYRÓ</title>
     <style>
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        #console-container {
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            background-color: #1e1e1e;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #header {
-            padding: 15px;
-            border-bottom: 1px solid #333;
-        }
-        h1 {
-            margin: 0;
-            font-size: 1.5em;
-            color: #ffffff;
-        }
-        #status-bar {
-            font-size: 0.9em;
-            color: #888;
-        }
-        #response-container {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-        .message-wrapper {
-            max-width: 100%;
-            margin-bottom: 15px;
-            display: flex;
-        }
-        .message {
-            padding: 10px 15px;
-            border-radius: 18px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .user {
-            background-color: #007bff;
-            color: white;
-            border-bottom-right-radius: 4px;
-            align-self: flex-end;
-            margin-left: auto;
-        }
-        .syro {
-            background-color: #333;
-            color: #e0e0e0;
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
-        }
-        .syro-error {
-            background-color: #5c1a1a;
-            color: #ffcccc;
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
-        }
-        #input-area {
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid #333;
-        }
-        #command-input {
-            flex-grow: 1;
-            background-color: #2c2c2c;
-            border: 1px solid #444;
-            border-radius: 20px;
-            padding: 10px 15px;
-            color: #e0e0e0;
-            outline: none;
-            font-size: 1em;
-        }
-        #send-button {
-            margin-left: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s;
-        }
-        #send-button:hover {
-            background-color: #0056b3;
-        }
-        #send-button:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        #console-container { width: 100%; max-width: 800px; height: 90vh; background-color: #1e1e1e; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden; }
+        #header { padding: 15px; border-bottom: 1px solid #333; }
+        h1 { margin: 0; font-size: 1.5em; color: #ffffff; }
+        #status-bar { font-size: 0.9em; color: #888; }
+        #response-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        .message-wrapper { max-width: 100%; margin-bottom: 15px; display: flex; }
+        .message { padding: 10px 15px; border-radius: 18px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+        .user { background-color: #007bff; color: white; border-bottom-right-radius: 4px; align-self: flex-end; margin-left: auto; }
+        .syro { background-color: #333; color: #e0e0e0; border-bottom-left-radius: 4px; align-self: flex-start; }
+        .syro-error { background-color: #5c1a1a; color: #ffcccc; border-bottom-left-radius: 4px; align-self: flex-start; }
+        #input-area { display: flex; padding: 15px; border-top: 1px solid #333; }
+        #command-input { flex-grow: 1; background-color: #2c2c2c; border: 1px solid #444; border-radius: 20px; padding: 10px 15px; color: #e0e0e0; outline: none; font-size: 1em; }
+        #send-button { margin-left: 10px; background-color: #007bff; color: white; border: none; border-radius: 20px; padding: 10px 20px; cursor: pointer; font-size: 1em; transition: background-color 0.3s; }
+        #send-button:hover { background-color: #0056b3; }
+        #send-button:disabled { background-color: #555; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div id="console-container">
         <div id="header">
-            <h1>Consola de Interacción SYRÓ v2.1</h1>
-            <div id="status-bar">SYRÓ v2.1 (Vercel Backend) listo. Conexión directa establecida.</div>
+            <h1>Consola de Interacción SYRÓ v5.6</h1>
+            <div id="status-bar">SYRÓ v5.6 (Vercel AI Gateway) listo. Modelo: gpt-oss-20b. Operativo.</div>
         </div>
-        <div id="response-container">
-            <!-- Los mensajes se insertarán aquí dinámicamente -->
-        </div>
+        <div id="response-container"></div>
         <div id="input-area">
-            <input type="text" id="command-input" placeholder="Pregunta o instruye a SYRÓ..." autocomplete="off">
+            <input type="text" id="command-input" placeholder="Escribe un prompt para gpt-oss..." autocomplete="off">
             <button id="send-button">Enviar</button>
         </div>
     </div>
-
     <script>
         const commandInput = document.getElementById('command-input');
         const sendButton = document.getElementById('send-button');
+        const responseContainer = document.getElementById('response-container');
 
-        sendButton.addEventListener('click', () => {
-            if (commandInput.value.trim() !== '') {
-                askSyro(commandInput.value.trim());
-            }
-        });
+        // La URL de nuestro backend desplegado y operativo
+        const apiEndpoint = 'https://syro-console.vercel.app/api/syro';
 
+        sendButton.addEventListener('click', () => sendRequest());
         commandInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && commandInput.value.trim() !== '') {
-                askSyro(commandInput.value.trim());
-            }
+            if (e.key === 'Enter') sendRequest();
         });
 
-        function displayMessage(text, sender) {
-            const container = document.getElementById('response-container');
+        function displayMessage(text, sender, isJson = false) {
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper';
-            
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
-            messageDiv.textContent = text;
-            
+            if (isJson) {
+                try {
+                    const obj = JSON.parse(text);
+                    messageDiv.textContent = JSON.stringify(obj, null, 2);
+                } catch (e) {
+                    messageDiv.textContent = text;
+                }
+            } else {
+                messageDiv.textContent = text;
+            }
             wrapper.appendChild(messageDiv);
-            
-            // Inserta el nuevo mensaje al principio (ya que el contenedor está en flex-direction: column-reverse)
-            container.insertBefore(wrapper, container.firstChild);
+            responseContainer.insertBefore(wrapper, responseContainer.firstChild);
         }
 
-        // ---------- ESTA ES LA FUNCIÓN CORREGIDA ----------
-        async function askSyro(inputValue) {
-            const sendButton = document.getElementById('send-button');
-            const responseContainer = document.getElementById('response-container');
-            
-            displayMessage(inputValue, 'user');
+        async function sendRequest() {
+            const userInput = commandInput.value.trim();
+            if (userInput === '') return;
+
+            displayMessage(userInput, 'user');
             sendButton.disabled = true;
             sendButton.textContent = 'Procesando...';
-            
-            document.getElementById('command-input').value = '';
-
-            const apiEndpoint = 'https://syro-console.vercel.app/api/syro';
+            commandInput.value = '';
 
             try {
                 const response = await fetch(apiEndpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ command: inputValue })
+                    headers: { 'Content-Type': 'application/json' },
+                    // IMPORTANTE: Enviamos el cuerpo como { command: '...' } para que coincida con el backend
+                    body: JSON.stringify({ command: userInput })
                 });
 
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || `Error del servidor: ${response.status}`);
+                const resultText = await response.text();
+                
+                if (!response.ok) {
+                    throw new Error(resultText);
                 }
-
-                const prettyData = JSON.stringify(result.data, null, 2);
-                displayMessage(`Éxito:\n${prettyData}`, 'syro');
+                
+                // Leemos el JSON en el formato correcto de la v5.6
+                const resultJson = JSON.parse(resultText);
+                const textResponse = resultJson.candidates[0].content.parts[0].text;
+                displayMessage(textResponse, 'syro');
 
             } catch (error) {
-                displayMessage(`Error Crítico: ${error.message}`, 'syro-error');
+                displayMessage(`Error Crítico: ${error.message}`, 'syro-error', true);
             } finally {
                 sendButton.disabled = false;
                 sendButton.textContent = 'Enviar';
