@@ -1,11 +1,12 @@
+import OpenAI from 'openai';
+
 export const config = {
   api: {
     bodyParser: true,
   },
 };
-const { GoogleAuth } = require('google-auth-library');
 
-// --- INICIO DE LA FUNCIÓN SERVERLESS ---
+// --- INICIO DE LA FUNCIÓN SERVERLESS v5.6 ---
 export default async function handler(req, res) {
   
   // CORS Preflight & Headers
@@ -28,53 +29,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    // --- AUTENTICACIÓN FINAL Y CORRECTA PARA VERCEL ---
-    const auth = new GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON),
-      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    // --- ARQUITECTURA KHA v5.6: VERCEL AI GATEWAY + GPT-OSS ---
+    // El SDK de OpenAI se configura para apuntar al Gateway de Vercel usando variables de entorno.
+    // Vercel se encarga de dirigir la petición al modelo gpt-oss.
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,      // Provisto por el Vercel AI Gateway
+      baseURL: process.env.OPENAI_API_BASE,   // Provisto por el Vercel AI Gateway
     });
     // --- FIN ---
     
-    const client = await auth.getClient();
-    const accessToken = (await client.getAccessToken()).token;
-
-    const project = 'syro-fresh-start'; // Apuntando al nuevo proyecto limpio
-    const location = 'us-central1';
-    const model = 'gemini-1.0-pro'; // Usando el modelo estable
-
-    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${model}:predict`;
-
-    const body = {
-      instances: [{
-        content: {
-          parts: [{ text: prompt }]
-        }
-      }],
-      parameters: {
-        temperature: 0.2,
-        maxOutputTokens: 256,
-        topK: 40,
-        topP: 0.95
-      }
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-oss-20b', // Especificamos el modelo de pesos abiertos
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 300,
     });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
-    }
+    const fullText = completion.choices[0].message.content;
 
-    const data = await response.json();
-    const fullText = data.predictions[0].content.parts[0].text;
-
+    // Se mantiene la estructura de respuesta para compatibilidad con el frontend existente.
     const finalResponse = {
         candidates: [{
           content: {
@@ -86,9 +59,9 @@ export default async function handler(req, res) {
     res.status(200).json(finalResponse);
 
   } catch (error) {
-    console.error('Error en el handler de la API:', error);
+    console.error('Error en el handler de la API (v5.6):', error);
     res.status(500).json({ 
-      message: 'Error interno del servidor al procesar la solicitud.',
+      message: 'Error interno del servidor al procesar la solicitud con el AI Gateway.',
       error: error.message 
     });
   }
