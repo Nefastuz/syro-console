@@ -23,23 +23,25 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
+  // --- INICIO DE LA MODIFICACIÓN DE DEBUG ---
+  // Vamos a inspeccionar el cuerpo de la petición que llega al servidor.
+  console.log('Cuerpo de la petición recibido:', req.body);
+  // --- FIN DE LA MODIFICACIÓN DE DEBUG ---
+
   const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ message: 'Prompt es requerido' });
   }
 
   try {
-    // --- ARQUITECTURA KHA v5.6: VERCEL AI GATEWAY + GPT-OSS ---
-    // El SDK de OpenAI se configura para apuntar al Gateway de Vercel usando variables de entorno.
-    // Vercel se encarga de dirigir la petición al modelo gpt-oss.
+    // ... el resto del código permanece igual ...
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,      // Provisto por el Vercel AI Gateway
-      baseURL: process.env.OPENAI_API_BASE,   // Provisto por el Vercel AI Gateway
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_API_BASE,
     });
-    // --- FIN ---
     
     const completion = await openai.chat.completions.create({
-      model: 'gpt-oss-20b', // Especificamos el modelo de pesos abiertos
+      model: 'gpt-oss-20b',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       max_tokens: 300,
@@ -47,7 +49,6 @@ export default async function handler(req, res) {
 
     const fullText = completion.choices[0].message.content;
 
-    // Se mantiene la estructura de respuesta para compatibilidad con el frontend existente.
     const finalResponse = {
         candidates: [{
           content: {
