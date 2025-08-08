@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRÓ v7.0 - Eclipse UI</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Iconos de Google Fonts, necesarios para la nueva UI -->
+    <title>SYRÓ v7.1 - Eclipse UI</title>
+    <!-- NOTA: Se elimina 'marked.min.js' ya que no se renderizará Markdown complejo en esta UI. -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        /* --- ESTILOS FUSIONADOS: SYRO "ECLIPSE" --- */
+        /* --- ESTILOS CORREGIDOS: SYRO "CHAT DIRECTO" v7.1 --- */
 
         /* --- 1. Configuración General y Fondo --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            color: #EAEAEA; /* Color base de texto más brillante */
+            color: #EAEAEA;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px; /* Margen exterior para el efecto flotante */
+            padding: 20px;
             box-sizing: border-box;
-            background-color: #2e3440; /* Fallback */
+            background-color: #2e3440;
         }
 
         .background-layer {
@@ -35,15 +34,13 @@
             overflow: hidden;
         }
 
-        /* --- 2. Contenedor Principal (Workspace) --- */
+        /* --- 2. Contenedor Principal (Glassmorphism) --- */
         .workspace-container {
             width: 90%;
             max-width: 1400px;
             height: 90vh;
             display: flex;
             overflow: hidden;
-            
-            /* FUSION: Aplicando el estilo 'glass-card' al contenedor principal */
             background: rgba(35, 40, 55, 0.45);
             backdrop-filter: blur(50px) saturate(120%);
             -webkit-backdrop-filter: blur(50px) saturate(120%);
@@ -52,90 +49,88 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* --- 3. Sidebar y su Contenido --- */
+        /* --- 3. Sidebar (Historial de Prompts del Usuario) --- */
         .sidebar {
             width: 30%;
             max-width: 350px;
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
-            background: transparent; /* FUSION: La sidebar es ahora parte del cristal */
-        }
-        .sidebar-header {
             padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
+            gap: 15px;
         }
-        .sidebar-header h2 { margin: 0; font-size: 1.2em; color: #FFFFFF; font-weight: 600; }
-        #history-container {
+        .sidebar h2 { 
+            margin: 0; 
+            margin-bottom: 10px; /* Espacio después del título */
+            font-size: 1.5em; 
+            color: #FFFFFF; 
+            font-weight: 600; 
+        }
+        #prompt-history {
             flex-grow: 1;
-            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             overflow-y: auto;
         }
 
-        /* FUSION: Rediseño de las burbujas de chat */
-        .chat-bubble { padding: 10px 15px; border-radius: 18px; line-height: 1.5; max-width: 90%; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.05);}
-        .user-bubble { background: rgba(77, 94, 241, 0.2); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .syro-system-bubble { background-color: rgba(0, 0, 0, 0.2); color: rgba(255,255,255,0.6); align-self: flex-start; border-bottom-left-radius: 4px; font-style: italic; }
-        
-        /* --- 4. Panel Principal y Área de Artefacto --- */
+        /* CORRECCIÓN: Estilo para los botones de prompt en el historial */
+        .prompt-button {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            background-color: rgba(77, 94, 241, 0.15);
+            border: 1px solid rgba(77, 94, 241, 0.2);
+            color: rgba(255, 255, 255, 0.85);
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .prompt-button:hover { background-color: rgba(77, 94, 241, 0.3); }
+
+        /* --- 4. Panel Principal (Área de Respuesta de SYRÓ) --- */
         .main-content {
             flex-grow: 1;
             display: flex;
-            flex-direction: column;
-            background: transparent;
+            flex-direction: column; /* Asegura el layout vertical */
         }
-        #artifact-display {
+        #response-area {
             flex-grow: 1;
             padding: 40px;
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.8);
             overflow-y: auto;
         }
-        
-        /* FUSION: Tipografía rediseñada para el artefacto */
-        #artifact-display h1 { color: #FFFFFF; margin-top: 0; font-size: 32px; font-weight: 600; margin-bottom: 20px; }
-        #artifact-display h2 { color: #FFFFFF; font-size: 24px; margin-top: 30px; border-left: 3px solid #d04c8f; /* FUSION: Usando el color de acento rosa */ padding-left: 10px; }
-        #artifact-display h3 { color: #EAEAEA; font-size: 20px; margin-top: 20px; font-weight: 500;}
-        #artifact-display p, #artifact-display li { font-size: 16px; line-height: 1.7; color: rgba(255,255,255,0.7); max-width: 75ch; }
-        #artifact-display strong { color: #FFFFFF; font-weight: 600; }
-        #artifact-display ul, #artifact-display ol { padding-left: 25px; }
-        #artifact-display code { background-color: rgba(0,0,0,0.25); padding: 3px 6px; border-radius: 6px; font-family: monospace; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* --- 5. Área de Input Rediseñada --- */
+        /* --- 5. Área de Input (Sin cambios de estilo, solo de lógica) --- */
         #input-area {
             padding: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             gap: 15px;
-            align-items: center; /* Centrar verticalmente */
-            background-color: transparent; /* FUSION: El fondo del input es parte del cristal */
+            align-items: center;
             flex-shrink: 0;
         }
         #command-input {
             flex-grow: 1;
             background: rgba(0,0,0,0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50px; /* FUSION: Forma de píldora */
+            border-radius: 50px;
             padding: 12px 20px;
             color: #FFFFFF;
             outline: none;
             font-size: 1em;
-            transition: background-color 0.2s;
         }
-        #command-input:focus { background-color: rgba(0,0,0,0.3); }
-
         #send-button {
-            background-color: #d04c8f; /* FUSION: Usando color de acento */
+            background-color: #d04c8f;
             color: white;
             border: none;
-            border-radius: 50%; /* FUSION: Botón circular */
+            border-radius: 50%;
             width: 48px;
             height: 48px;
             cursor: pointer;
-            font-size: 1em;
-            font-weight: 500;
             display: grid;
             place-items: center;
             flex-shrink: 0;
@@ -146,25 +141,24 @@
     </style>
 </head>
 <body>
-    <!-- FUSION: Capa de fondo añadida -->
     <div class="background-layer"></div>
 
     <div class="workspace-container">
+        <!-- CORRECCIÓN: El sidebar ahora tiene su propia estructura interna -->
         <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>SYRÓ</h2> <!-- Título simplificado -->
+            <h2>SYRÓ</h2>
+            <div id="prompt-history">
+                <!-- El historial de prompts se generará aquí -->
             </div>
-            <div id="history-container"></div>
         </div>
+        
         <div class="main-content">
-            <div id="artifact-display">
-                <!-- FUSION: Contenido de bienvenida actualizado -->
-                <h1>SYRÓ v7.0</h1>
-                <p>Bienvenido, Arquitecto. El entorno "Eclipse" está operativo. Proporcione una directiva para comenzar.</p>
+            <!-- CORRECCIÓN: El panel principal ahora es solo el área de respuesta y el input -->
+            <div id="response-area">
+                <!-- La respuesta de SYRÓ aparecerá aquí -->
             </div>
             <div id="input-area">
                 <input type="text" id="command-input" placeholder="Escribe una directiva..." autocomplete="off">
-                <!-- FUSION: Botón actualizado para usar un icono -->
                 <button id="send-button" title="Enviar Directiva">
                     <span class="material-icons">send</span>
                 </button>
@@ -173,39 +167,50 @@
     </div>
 
     <script>
-        // La sección de JavaScript se mantiene intacta, pero se ajusta para el nuevo botón.
+        // --- LÓGICA JAVASCRIPT COMPLETAMENTE REESCRITA ---
+
         const commandInput = document.getElementById('command-input');
         const sendButton = document.getElementById('send-button');
-        const historyContainer = document.getElementById('history-container');
-        const artifactDisplay = document.getElementById('artifact-display');
+        const promptHistoryContainer = document.getElementById('prompt-history');
+        const responseArea = document.getElementById('response-area');
         const apiEndpoint = '/api/syro';
 
-        // Variable para el texto del botón
         const sendIcon = '<span class="material-icons">send</span>';
         const processingText = '...';
+        
+        // Estado inicial de la aplicación
+        document.addEventListener('DOMContentLoaded', () => {
+            responseArea.textContent = '¡Hola! Soy SYRÓ, tu agente modular de ideas y acción. ¿En qué puedo ayudarte hoy?';
+        });
 
         sendButton.addEventListener('click', sendRequest);
         commandInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendRequest();
         });
 
-        function addToHistory(text, senderClass) {
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${senderClass}`;
-            bubble.textContent = text;
-            historyContainer.appendChild(bubble);
-            historyContainer.scrollTop = historyContainer.scrollHeight;
+        function addPromptToHistory(text) {
+            const button = document.createElement('button');
+            button.className = 'prompt-button';
+            button.textContent = text;
+            // Opcional: Hacer que los botones antiguos vuelvan a enviar la directiva
+            button.onclick = () => {
+                commandInput.value = text;
+                sendRequest();
+            };
+            promptHistoryContainer.appendChild(button);
+            promptHistoryContainer.scrollTop = promptHistoryContainer.scrollHeight;
         }
 
         async function sendRequest() {
             const userInput = commandInput.value.trim();
             if (userInput === '') return;
 
-            addToHistory(userInput, 'user-bubble');
+            addPromptToHistory(userInput); // Añade el prompt como botón a la sidebar
+            
             sendButton.disabled = true;
             sendButton.innerHTML = processingText;
             commandInput.value = '';
-            artifactDisplay.innerHTML = "<h1>Generando Artefacto...</h1>";
+            responseArea.textContent = "Procesando..."; // Muestra estado en el panel principal
 
             try {
                 const response = await fetch(apiEndpoint, {
@@ -220,21 +225,17 @@
                 }
                 
                 const resultText = await response.text();
+                // Asumimos que la respuesta de la API es un JSON con una propiedad de texto
                 const resultJson = JSON.parse(resultText);
-
-                if (resultJson.candidates && resultJson.candidates[0].content.parts[0].text) {
-                    const markdownText = resultJson.candidates[0].content.parts[0].text;
-                    artifactDisplay.innerHTML = marked.parse(markdownText);
-                } else if (resultJson.message) {
-                    addToHistory(resultJson.message, 'syro-system-bubble');
-                    artifactDisplay.innerHTML = `<h1>Comando Ejecutado</h1><p>${resultJson.message}</p>`;
-                } else {
-                    throw new Error("Formato de respuesta de API no reconocido.");
-                }
+                const syroResponse = resultJson.candidates[0].content.parts[0].text;
+                
+                // Muestra la respuesta de SYRÓ en el panel principal
+                responseArea.textContent = syroResponse;
 
             } catch (error) {
-                const errorMessage = error.message.includes("{") ? "Error en la respuesta del servidor." : error.message;
-                artifactDisplay.innerHTML = `<h1>Error Crítico</h1><p style="color: #ff8a8a;">${errorMessage}</p>`;
+                const errorMessage = "Hubo un error al procesar tu solicitud. Por favor, intenta de nuevo.";
+                responseArea.textContent = errorMessage;
+                console.error(error);
             } finally {
                 sendButton.disabled = false;
                 sendButton.innerHTML = sendIcon;
