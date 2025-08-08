@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consola de Interacción SYRÓ</title>
+    <title>Consola de Interacción SYRÓ v6.1</title>
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         #console-container { width: 100%; max-width: 800px; height: 90vh; background-color: #1e1e1e; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden; }
@@ -15,6 +15,7 @@
         .message { padding: 10px 15px; border-radius: 18px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
         .user { background-color: #007bff; color: white; border-bottom-right-radius: 4px; align-self: flex-end; margin-left: auto; }
         .syro { background-color: #333; color: #e0e0e0; border-bottom-left-radius: 4px; align-self: flex-start; }
+        .syro-system { background-color: #1f4e3d; color: #a7f3d0; border-bottom-left-radius: 4px; align-self: flex-start; font-style: italic;}
         .syro-error { background-color: #5c1a1a; color: #ffcccc; border-bottom-left-radius: 4px; align-self: flex-start; }
         #input-area { display: flex; padding: 15px; border-top: 1px solid #333; }
         #command-input { flex-grow: 1; background-color: #2c2c2c; border: 1px solid #444; border-radius: 20px; padding: 10px 15px; color: #e0e0e0; outline: none; font-size: 1em; }
@@ -26,12 +27,12 @@
 <body>
     <div id="console-container">
         <div id="header">
-            <h1>Consola de Interacción SYRÓ v5.6</h1>
-            <div id="status-bar">SYRÓ v5.6 (Vercel AI Gateway) listo. Modelo: gpt-oss-20b. Operativo.</div>
+            <h1>Consola de Interacción SYRÓ v6.1</h1>
+            <div id="status-bar">Módulo VORO (Memoria) Activo. Conectado a Supabase.</div>
         </div>
         <div id="response-container"></div>
         <div id="input-area">
-            <input type="text" id="command-input" placeholder="Escribe un prompt para gpt-oss..." autocomplete="off">
+            <input type="text" id="command-input" placeholder="Escribe un prompt o !MEMORIZE..." autocomplete="off">
             <button id="send-button">Enviar</button>
         </div>
     </div>
@@ -39,8 +40,6 @@
         const commandInput = document.getElementById('command-input');
         const sendButton = document.getElementById('send-button');
         const responseContainer = document.getElementById('response-container');
-
-        // La URL de nuestro backend desplegado y operativo
         const apiEndpoint = 'https://syro-console.vercel.app/api/syro';
 
         sendButton.addEventListener('click', () => sendRequest());
@@ -53,16 +52,7 @@
             wrapper.className = 'message-wrapper';
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
-            if (isJson) {
-                try {
-                    const obj = JSON.parse(text);
-                    messageDiv.textContent = JSON.stringify(obj, null, 2);
-                } catch (e) {
-                    messageDiv.textContent = text;
-                }
-            } else {
-                messageDiv.textContent = text;
-            }
+            if (isJson) { /* ... */ } else { messageDiv.textContent = text; }
             wrapper.appendChild(messageDiv);
             responseContainer.insertBefore(wrapper, responseContainer.firstChild);
         }
@@ -80,20 +70,22 @@
                 const response = await fetch(apiEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // IMPORTANTE: Enviamos el cuerpo como { command: '...' } para que coincida con el backend
                     body: JSON.stringify({ command: userInput })
                 });
 
                 const resultText = await response.text();
+                if (!response.ok) { throw new Error(resultText); }
                 
-                if (!response.ok) {
-                    throw new Error(resultText);
-                }
-                
-                // Leemos el JSON en el formato correcto de la v5.6
                 const resultJson = JSON.parse(resultText);
-                const textResponse = resultJson.candidates[0].content.parts[0].text;
-                displayMessage(textResponse, 'syro');
+
+                if (resultJson.candidates) {
+                    const textResponse = resultJson.candidates[0].content.parts[0].text;
+                    displayMessage(textResponse, 'syro');
+                } else if (resultJson.message) {
+                    displayMessage(resultJson.message, 'syro-system');
+                } else {
+                    throw new Error("Formato de respuesta de API no reconocido.");
+                }
 
             } catch (error) {
                 displayMessage(`Error Crítico: ${error.message}`, 'syro-error', true);

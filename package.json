@@ -1,7 +1,7 @@
 {
   "name": "syro-console-backend",
   "version": "1.3.0",
-  "description": "Serverless backend for SYRO, powered by Vercel AI Gateway with VORO Module",
+  "description": "Serverless backend for SYRÓ, powered by Vercel AI Gateway with VORO Module",
   "main": "api/syro.js",
   "dependencies": {
     "openai": "^4.28.0",
