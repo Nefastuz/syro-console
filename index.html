@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRÓ v7.2 - Nocturno UI</title>
+    <title>SYRÓ v7.3 - Noguchi UI</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        /* --- ESTILOS ACTUALIZADOS: SYRO "NOCTURNO" v7.2 --- */
+        /* --- ESTILOS FINALES: SYRO "NOGUCHI" v7.3 --- */
 
-        /* --- 1. Configuración General y Nuevo Fondo --- */
+        /* --- 1. Configuración General y Fondo "Noguchi" --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -19,7 +19,7 @@
             min-height: 100vh;
             padding: 20px;
             box-sizing: border-box;
-            background-color: #060147; /* CAMBIO: Nueva base de color */
+            background-color: #132041; /* CAMBIO: Nueva base de color Azul Oscuro */
         }
 
         .background-layer {
@@ -28,33 +28,31 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* CAMBIO: Nuevo gradiente "Nocturno" */
-            background: radial-gradient(130% 110% at 90% 100%, 
-                #930001 0%,      /* 1. Rojo Vino */
-                #4A0D67 25%,     /* 2. Púrpura Profundo */
-                #2A1B6A 55%,     /* 3. Índigo Oscuro */
-                #060147 85%      /* 4. Azul de Medianoche */
+            /* CAMBIO: Nuevo gradiente "Noguchi" y dirección invertida */
+            background: radial-gradient(120% 120% at 15% 15%, 
+                #193656 0%,      /* 1. Azul Principal */
+                #132041 90%      /* 2. Azul Oscuro */
             );
             z-index: -1;
             overflow: hidden;
         }
 
-        /* --- 2. Contenedor Principal (Sin cambios estructurales) --- */
+        /* --- 2. Contenedor Principal con Tinte "Noguchi" --- */
         .workspace-container {
             width: 90%;
             max-width: 1400px;
             height: 90vh;
             display: flex;
             overflow: hidden;
-            background: rgba(15, 10, 50, 0.45); /* CAMBIO: Tono de cristal ajustado a la nueva base */
-            backdrop-filter: blur(50px) saturate(120%);
-            -webkit-backdrop-filter: blur(50px) saturate(120%);
+            background: rgba(25, 54, 86, 0.25); /* CAMBIO: Tinte de cristal basado en el Azul Principal */
+            backdrop-filter: blur(50px) saturate(110%);
+            -webkit-backdrop-filter: blur(50px) saturate(110%);
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* --- 3. Sidebar y Botones de Prompt --- */
+        /* --- 3. Sidebar y Botones con Color de Componente --- */
         .sidebar {
             width: 30%;
             max-width: 350px;
@@ -71,27 +69,35 @@
             width: 100%;
             padding: 12px 15px;
             border-radius: 8px;
-            /* CAMBIO: Usando el Índigo Oscuro (#2A1B6A) como base para los botones */
-            background-color: rgba(42, 27, 106, 0.3);
-            border: 1px solid rgba(42, 27, 106, 0.5);
+            background-color: rgba(34, 35, 43, 0.4); /* CAMBIO: Usando Gris Neutro (#22232b) */
+            border: 1px solid rgba(34, 35, 43, 0.6);
             color: rgba(255, 255, 255, 0.85);
             text-align: left;
             font-size: 14px;
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        .prompt-button:hover { background-color: rgba(42, 27, 106, 0.5); }
+        .prompt-button:hover { background-color: rgba(34, 35, 43, 0.6); }
 
         /* --- 4. Panel Principal (Sin cambios) --- */
         .main-content { flex-grow: 1; display: flex; flex-direction: column; }
-        #response-area { flex-grow: 1; padding: 40px; font-size: 1.1em; line-height: 1.7; color: rgba(255,255,255,0.8); overflow-y: auto; }
+        #response-area { flex-grow: 1; padding: 40px; font-size: 1.1em; line-height: 1.7; color: rgba(255,255,255,0.85); overflow-y: auto; }
 
-        /* --- 5. Área de Input --- */
+        /* --- 5. Área de Input con Color de Componente y Acento --- */
         #input-area { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 15px; align-items: center; flex-shrink: 0; }
-        #command-input { flex-grow: 1; background: rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; padding: 12px 20px; color: #FFFFFF; outline: none; font-size: 1em; }
+        #command-input {
+            flex-grow: 1;
+            background: rgba(34, 35, 43, 0.5); /* CAMBIO: Usando Gris Neutro (#22232b) */
+            border: 1px solid rgba(34, 35, 43, 0.7);
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: #FFFFFF;
+            outline: none;
+            font-size: 1em;
+        }
         
         #send-button {
-            background-color: #930001; /* CAMBIO: Nuevo color de acento */
+            background-color: #af1c1e; /* CAMBIO: Nuevo color de Acento Rojo */
             color: white;
             border: none;
             border-radius: 50%;
@@ -103,8 +109,8 @@
             flex-shrink: 0;
             transition: background-color 0.2s;
         }
-        #send-button:hover { background-color: #a10001; /* CAMBIO: Tono de hover ajustado */ }
-        #send-button:disabled { background-color: rgba(255,255,255,0.2); cursor: not-allowed; }
+        #send-button:hover { background-color: #c41e20; /* CAMBIO: Tono de hover ajustado */ }
+        #send-button:disabled { background-color: rgba(34, 35, 43, 0.8); cursor: not-allowed; }
     </style>
 </head>
 <body>
