@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYRÓ v6.0 - Architect's Desk</title>
-    <!-- 1. Integración de la librería de renderizado de Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { 
@@ -39,12 +38,9 @@
         .sidebar-header {
             padding: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0; /* Evita que el header se encoja */
         }
-        .sidebar-header h2 {
-            margin: 0;
-            font-size: 1.2em;
-            color: #F0F0F0;
-        }
+        .sidebar-header h2 { margin: 0; font-size: 1.2em; color: #F0F0F0; }
         #history-container {
             flex-grow: 1;
             padding: 20px;
@@ -57,17 +53,29 @@
         .user-bubble { background: #238636; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .syro-system-bubble { background-color: #21262D; color: #8B949E; align-self: flex-start; border-bottom-left-radius: 4px; font-style: italic; }
         
+        /* --- CORRECCIÓN CLAVE EN LA ESTRUCTURA DEL PANEL PRINCIPAL --- */
         .main-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            /* Se elimina 'overflow: hidden' para que los hijos lo gestionen */
         }
         #artifact-display {
-            flex-grow: 1;
+            flex-grow: 1; /* Crecerá para llenar el espacio */
             padding: 40px;
-            overflow-y: auto;
+            overflow-y: auto; /* AÑADE SCROLL SI EL CONTENIDO ES LARGO */
         }
+        #input-area {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 10px;
+            background-color: #0D1117;
+            flex-shrink: 0; /* Evita que el área de input se encoja */
+        }
+        /* --- FIN DE LA CORRECCIÓN --- */
+
+        /* Estilos de contenido del artefacto */
         #artifact-display h1 { color: #F0F0F0; margin-top: 0; font-size: 32px; font-weight: 700; margin-bottom: 20px; }
         #artifact-display h2 { color: #58A6FF; font-size: 24px; margin-top: 30px; border-left: 3px solid #58A6FF; padding-left: 10px; }
         #artifact-display h3 { color: #C9D1D9; font-size: 20px; margin-top: 20px; font-weight: 500;}
@@ -76,13 +84,6 @@
         #artifact-display ul, #artifact-display ol { padding-left: 25px; }
         #artifact-display code { background-color: #2d333b; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
         
-        #input-area {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 10px;
-            background-color: #0D1117;
-        }
         #command-input {
             flex-grow: 1;
             background-color: #21262D;
@@ -108,20 +109,84 @@
 </head>
 <body>
     <div class="workspace-container">
-        <!-- Columna Lateral (Historial y Control) -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2>SYRÓ v6.0</h2>
             </div>
-            <div id="history-container">
-                <!-- El historial de chat se añadirá aquí dinámicamente -->
-            </div>
+            <div id="history-container"></div>
         </div>
-        <!-- Panel Principal (Artefacto y Entrada) -->
         <div class="main-content">
             <div id="artifact-display">
                 <h1>Architect's Desk</h1>
                 <p>Bienvenido, Arquitecto. Proporcione una directiva para comenzar.</p>
             </div>
             <div id="input-area">
-                <input type="text" id="command-input" pl
+                <input type="text" id="command-input" placeholder="Escribe una directiva o un comando..." autocomplete="off">
+                <button id="send-button">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // La sección de JavaScript no necesita cambios.
+        const commandInput = document.getElementById('command-input');
+        const sendButton = document.getElementById('send-button');
+        const historyContainer = document.getElementById('history-container');
+        const artifactDisplay = document.getElementById('artifact-display');
+        const apiEndpoint = '/api/syro';
+
+        sendButton.addEventListener('click', sendRequest);
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendRequest();
+        });
+
+        function addToHistory(text, senderClass) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${senderClass}`;
+            bubble.textContent = text;
+            historyContainer.appendChild(bubble);
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+        }
+
+        async function sendRequest() {
+            const userInput = commandInput.value.trim();
+            if (userInput === '') return;
+
+            addToHistory(userInput, 'user-bubble');
+            sendButton.disabled = true;
+            sendButton.textContent = 'Procesando...';
+            commandInput.value = '';
+            artifactDisplay.innerHTML = "<h1>Generando Artefacto...</h1>";
+
+            try {
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: userInput })
+                });
+
+                const resultText = await response.text();
+                if (!response.ok) { throw new Error(resultText); }
+                
+                const resultJson = JSON.parse(resultText);
+
+                if (resultJson.candidates) {
+                    const markdownText = resultJson.candidates[0].content.parts[0].text;
+                    artifactDisplay.innerHTML = marked.parse(markdownText);
+                } else if (resultJson.message) {
+                    addToHistory(resultJson.message, 'syro-system-bubble');
+                    artifactDisplay.innerHTML = `<h1>Comando Ejecutado</h1><p>${resultJson.message}</p>`;
+                } else {
+                    throw new Error("Formato de respuesta de API no reconocido.");
+                }
+
+            } catch (error) {
+                artifactDisplay.innerHTML = `<h1>Error Crítico</h1><p style="color: #ff8a8a;">${error.message}</p>`;
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Enviar';
+            }
+        }
+    </script>
+</body>
+</html>
