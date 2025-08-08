@@ -3,44 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRÓ v6.0 - Architect's Desk</title>
+    <title>SYRÓ v7.0 - Eclipse UI</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Iconos de Google Fonts, necesarios para la nueva UI -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { 
-            background: #0D1117;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            margin: 0; 
+        /* --- ESTILOS FUSIONADOS: SYRO "ECLIPSE" --- */
+
+        /* --- 1. Configuración General y Fondo --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            color: #EAEAEA; /* Color base de texto más brillante */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            color: #C9D1D9;
+            min-height: 100vh;
+            padding: 20px; /* Margen exterior para el efecto flotante */
+            box-sizing: border-box;
+            background-color: #2e3440; /* Fallback */
         }
+
+        .background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(130% 110% at 90% 100%, #d04c8f 0%, #6a5acd 25%, #4169e1 55%, #2e3440 85%);
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        /* --- 2. Contenedor Principal (Workspace) --- */
         .workspace-container {
             width: 90%;
             max-width: 1400px;
             height: 90vh;
             display: flex;
-            background-color: #161B22;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
             overflow: hidden;
+            
+            /* FUSION: Aplicando el estilo 'glass-card' al contenedor principal */
+            background: rgba(35, 40, 55, 0.45);
+            backdrop-filter: blur(50px) saturate(120%);
+            -webkit-backdrop-filter: blur(50px) saturate(120%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
+
+        /* --- 3. Sidebar y su Contenido --- */
         .sidebar {
             width: 30%;
             max-width: 350px;
-            background: #0D1117;
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
+            background: transparent; /* FUSION: La sidebar es ahora parte del cristal */
         }
         .sidebar-header {
             padding: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0; /* Evita que el header se encoja */
+            flex-shrink: 0;
         }
-        .sidebar-header h2 { margin: 0; font-size: 1.2em; color: #F0F0F0; }
+        .sidebar-header h2 { margin: 0; font-size: 1.2em; color: #FFFFFF; font-weight: 600; }
         #history-container {
             flex-grow: 1;
             padding: 20px;
@@ -49,91 +75,114 @@
             gap: 15px;
             overflow-y: auto;
         }
-        .chat-bubble { padding: 10px 15px; border-radius: 18px; line-height: 1.5; max-width: 90%; font-size: 14px; }
-        .user-bubble { background: #238636; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .syro-system-bubble { background-color: #21262D; color: #8B949E; align-self: flex-start; border-bottom-left-radius: 4px; font-style: italic; }
+
+        /* FUSION: Rediseño de las burbujas de chat */
+        .chat-bubble { padding: 10px 15px; border-radius: 18px; line-height: 1.5; max-width: 90%; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.05);}
+        .user-bubble { background: rgba(77, 94, 241, 0.2); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .syro-system-bubble { background-color: rgba(0, 0, 0, 0.2); color: rgba(255,255,255,0.6); align-self: flex-start; border-bottom-left-radius: 4px; font-style: italic; }
         
-        /* --- CORRECCIÓN CLAVE EN LA ESTRUCTURA DEL PANEL PRINCIPAL --- */
+        /* --- 4. Panel Principal y Área de Artefacto --- */
         .main-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            /* Se elimina 'overflow: hidden' para que los hijos lo gestionen */
+            background: transparent;
         }
         #artifact-display {
-            flex-grow: 1; /* Crecerá para llenar el espacio */
+            flex-grow: 1;
             padding: 40px;
-            overflow-y: auto; /* AÑADE SCROLL SI EL CONTENIDO ES LARGO */
+            overflow-y: auto;
         }
+        
+        /* FUSION: Tipografía rediseñada para el artefacto */
+        #artifact-display h1 { color: #FFFFFF; margin-top: 0; font-size: 32px; font-weight: 600; margin-bottom: 20px; }
+        #artifact-display h2 { color: #FFFFFF; font-size: 24px; margin-top: 30px; border-left: 3px solid #d04c8f; /* FUSION: Usando el color de acento rosa */ padding-left: 10px; }
+        #artifact-display h3 { color: #EAEAEA; font-size: 20px; margin-top: 20px; font-weight: 500;}
+        #artifact-display p, #artifact-display li { font-size: 16px; line-height: 1.7; color: rgba(255,255,255,0.7); max-width: 75ch; }
+        #artifact-display strong { color: #FFFFFF; font-weight: 600; }
+        #artifact-display ul, #artifact-display ol { padding-left: 25px; }
+        #artifact-display code { background-color: rgba(0,0,0,0.25); padding: 3px 6px; border-radius: 6px; font-family: monospace; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* --- 5. Área de Input Rediseñada --- */
         #input-area {
             padding: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            gap: 10px;
-            background-color: #0D1117;
-            flex-shrink: 0; /* Evita que el área de input se encoja */
+            gap: 15px;
+            align-items: center; /* Centrar verticalmente */
+            background-color: transparent; /* FUSION: El fondo del input es parte del cristal */
+            flex-shrink: 0;
         }
-        /* --- FIN DE LA CORRECCIÓN --- */
-
-        /* Estilos de contenido del artefacto */
-        #artifact-display h1 { color: #F0F0F0; margin-top: 0; font-size: 32px; font-weight: 700; margin-bottom: 20px; }
-        #artifact-display h2 { color: #58A6FF; font-size: 24px; margin-top: 30px; border-left: 3px solid #58A6FF; padding-left: 10px; }
-        #artifact-display h3 { color: #C9D1D9; font-size: 20px; margin-top: 20px; font-weight: 500;}
-        #artifact-display p, #artifact-display li { font-size: 16px; line-height: 1.7; color: #8B949E; max-width: 75ch; }
-        #artifact-display strong { color: #C9D1D9; font-weight: 500; }
-        #artifact-display ul, #artifact-display ol { padding-left: 25px; }
-        #artifact-display code { background-color: #2d333b; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
-        
         #command-input {
             flex-grow: 1;
-            background-color: #21262D;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 12px 15px;
-            color: #C9D1D9;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px; /* FUSION: Forma de píldora */
+            padding: 12px 20px;
+            color: #FFFFFF;
             outline: none;
             font-size: 1em;
+            transition: background-color 0.2s;
         }
+        #command-input:focus { background-color: rgba(0,0,0,0.3); }
+
         #send-button {
-            background-color: #238636;
+            background-color: #d04c8f; /* FUSION: Usando color de acento */
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
+            border-radius: 50%; /* FUSION: Botón circular */
+            width: 48px;
+            height: 48px;
             cursor: pointer;
             font-size: 1em;
             font-weight: 500;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s;
         }
-        #send-button:disabled { background-color: #555; cursor: not-allowed; }
+        #send-button:hover { background-color: #e52e71; }
+        #send-button:disabled { background-color: rgba(255,255,255,0.2); cursor: not-allowed; }
     </style>
 </head>
 <body>
+    <!-- FUSION: Capa de fondo añadida -->
+    <div class="background-layer"></div>
+
     <div class="workspace-container">
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>SYRÓ v6.0</h2>
+                <h2>SYRÓ</h2> <!-- Título simplificado -->
             </div>
             <div id="history-container"></div>
         </div>
         <div class="main-content">
             <div id="artifact-display">
-                <h1>Architect's Desk</h1>
-                <p>Bienvenido, Arquitecto. Proporcione una directiva para comenzar.</p>
+                <!-- FUSION: Contenido de bienvenida actualizado -->
+                <h1>SYRÓ v7.0</h1>
+                <p>Bienvenido, Arquitecto. El entorno "Eclipse" está operativo. Proporcione una directiva para comenzar.</p>
             </div>
             <div id="input-area">
-                <input type="text" id="command-input" placeholder="Escribe una directiva o un comando..." autocomplete="off">
-                <button id="send-button">Enviar</button>
+                <input type="text" id="command-input" placeholder="Escribe una directiva..." autocomplete="off">
+                <!-- FUSION: Botón actualizado para usar un icono -->
+                <button id="send-button" title="Enviar Directiva">
+                    <span class="material-icons">send</span>
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // La sección de JavaScript no necesita cambios.
+        // La sección de JavaScript se mantiene intacta, pero se ajusta para el nuevo botón.
         const commandInput = document.getElementById('command-input');
         const sendButton = document.getElementById('send-button');
         const historyContainer = document.getElementById('history-container');
         const artifactDisplay = document.getElementById('artifact-display');
         const apiEndpoint = '/api/syro';
+
+        // Variable para el texto del botón
+        const sendIcon = '<span class="material-icons">send</span>';
+        const processingText = '...';
 
         sendButton.addEventListener('click', sendRequest);
         commandInput.addEventListener('keypress', (e) => {
@@ -154,7 +203,7 @@
 
             addToHistory(userInput, 'user-bubble');
             sendButton.disabled = true;
-            sendButton.textContent = 'Procesando...';
+            sendButton.innerHTML = processingText;
             commandInput.value = '';
             artifactDisplay.innerHTML = "<h1>Generando Artefacto...</h1>";
 
@@ -164,13 +213,16 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: userInput })
                 });
-
-                const resultText = await response.text();
-                if (!response.ok) { throw new Error(resultText); }
                 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Error de servidor: ${response.status}`);
+                }
+                
+                const resultText = await response.text();
                 const resultJson = JSON.parse(resultText);
 
-                if (resultJson.candidates) {
+                if (resultJson.candidates && resultJson.candidates[0].content.parts[0].text) {
                     const markdownText = resultJson.candidates[0].content.parts[0].text;
                     artifactDisplay.innerHTML = marked.parse(markdownText);
                 } else if (resultJson.message) {
@@ -181,10 +233,11 @@
                 }
 
             } catch (error) {
-                artifactDisplay.innerHTML = `<h1>Error Crítico</h1><p style="color: #ff8a8a;">${error.message}</p>`;
+                const errorMessage = error.message.includes("{") ? "Error en la respuesta del servidor." : error.message;
+                artifactDisplay.innerHTML = `<h1>Error Crítico</h1><p style="color: #ff8a8a;">${errorMessage}</p>`;
             } finally {
                 sendButton.disabled = false;
-                sendButton.textContent = 'Enviar';
+                sendButton.innerHTML = sendIcon;
             }
         }
     </script>
