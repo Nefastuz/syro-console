@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRÓ v7.3 - Noguchi UI</title>
+    <title>SYRÓ v7.4 - Noguchi Fidelity UI</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        /* --- ESTILOS FINALES: SYRO "NOGUCHI" v7.3 --- */
+        /* --- ESTILOS CORREGIDOS: SYRO "NOGUCHI FIDELITY" v7.4 --- */
 
-        /* --- 1. Configuración General y Fondo "Noguchi" --- */
+        /* --- 1. Configuración General y Fondo con Gradiente Fiel --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -19,7 +19,7 @@
             min-height: 100vh;
             padding: 20px;
             box-sizing: border-box;
-            background-color: #132041; /* CAMBIO: Nueva base de color Azul Oscuro */
+            background-color: #132041; /* Base de color Azul Oscuro */
         }
 
         .background-layer {
@@ -28,23 +28,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* CAMBIO: Nuevo gradiente "Noguchi" y dirección invertida */
-            background: radial-gradient(120% 120% at 15% 15%, 
-                #193656 0%,      /* 1. Azul Principal */
-                #132041 90%      /* 2. Azul Oscuro */
+            /* CORRECCIÓN: Implementando el gradiente azul-a-rojo de la referencia */
+            background: radial-gradient(110% 100% at 90% 90%, 
+                #af1c1e 0%,      /* Rojo de Acento */
+                #193656 60%,     /* Azul Principal */
+                #132041 90%      /* Azul Oscuro */
             );
             z-index: -1;
             overflow: hidden;
         }
 
-        /* --- 2. Contenedor Principal con Tinte "Noguchi" --- */
+        /* --- 2. Contenedor Principal (Sin cambios) --- */
         .workspace-container {
             width: 90%;
             max-width: 1400px;
             height: 90vh;
             display: flex;
             overflow: hidden;
-            background: rgba(25, 54, 86, 0.25); /* CAMBIO: Tinte de cristal basado en el Azul Principal */
+            background: rgba(25, 54, 86, 0.25);
             backdrop-filter: blur(50px) saturate(110%);
             -webkit-backdrop-filter: blur(50px) saturate(110%);
             border-radius: 24px;
@@ -52,54 +53,24 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* --- 3. Sidebar y Botones con Color de Componente --- */
-        .sidebar {
-            width: 30%;
-            max-width: 350px;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 15px;
-        }
+        /* --- 3. Sidebar y Componentes (Sin cambios) --- */
+        .sidebar { width: 30%; max-width: 350px; border-right: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; padding: 20px; gap: 15px; }
         .sidebar h2 { margin: 0; margin-bottom: 10px; font-size: 1.5em; color: #FFFFFF; font-weight: 600; }
         #prompt-history { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-
-        .prompt-button {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            background-color: rgba(34, 35, 43, 0.4); /* CAMBIO: Usando Gris Neutro (#22232b) */
-            border: 1px solid rgba(34, 35, 43, 0.6);
-            color: rgba(255, 255, 255, 0.85);
-            text-align: left;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+        .prompt-button { width: 100%; padding: 12px 15px; border-radius: 8px; background-color: rgba(34, 35, 43, 0.4); border: 1px solid rgba(34, 35, 43, 0.6); color: rgba(255, 255, 255, 0.85); text-align: left; font-size: 14px; cursor: pointer; transition: background-color 0.2s; }
         .prompt-button:hover { background-color: rgba(34, 35, 43, 0.6); }
 
         /* --- 4. Panel Principal (Sin cambios) --- */
         .main-content { flex-grow: 1; display: flex; flex-direction: column; }
         #response-area { flex-grow: 1; padding: 40px; font-size: 1.1em; line-height: 1.7; color: rgba(255,255,255,0.85); overflow-y: auto; }
 
-        /* --- 5. Área de Input con Color de Componente y Acento --- */
+        /* --- 5. Área de Input y Botón con Solución de Contraste --- */
         #input-area { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 15px; align-items: center; flex-shrink: 0; }
-        #command-input {
-            flex-grow: 1;
-            background: rgba(34, 35, 43, 0.5); /* CAMBIO: Usando Gris Neutro (#22232b) */
-            border: 1px solid rgba(34, 35, 43, 0.7);
-            border-radius: 50px;
-            padding: 12px 20px;
-            color: #FFFFFF;
-            outline: none;
-            font-size: 1em;
-        }
+        #command-input { flex-grow: 1; background: rgba(34, 35, 43, 0.5); border: 1px solid rgba(34, 35, 43, 0.7); border-radius: 50px; padding: 12px 20px; color: #FFFFFF; outline: none; font-size: 1em; }
         
         #send-button {
-            background-color: #af1c1e; /* CAMBIO: Nuevo color de Acento Rojo */
+            background-color: #af1c1e; /* Color de Acento Rojo */
             color: white;
-            border: none;
             border-radius: 50%;
             width: 48px;
             height: 48px;
@@ -107,30 +78,30 @@
             display: grid;
             place-items: center;
             flex-shrink: 0;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            
+            /* CORRECCIÓN: Solución de contraste */
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 12px rgba(175, 28, 30, 0.5);
         }
-        #send-button:hover { background-color: #c41e20; /* CAMBIO: Tono de hover ajustado */ }
-        #send-button:disabled { background-color: rgba(34, 35, 43, 0.8); cursor: not-allowed; }
+        #send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(175, 28, 30, 0.7);
+        }
+        #send-button:disabled { background-color: rgba(34, 35, 43, 0.8); cursor: not-allowed; box-shadow: none; border-color: rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
     <div class="background-layer"></div>
 
     <div class="workspace-container">
-        <div class="sidebar">
-            <h2>SYRÓ</h2>
-            <div id="prompt-history"></div>
-        </div>
-        
+        <!-- El resto del HTML no requiere cambios -->
+        <div class="sidebar"><h2>SYRÓ</h2><div id="prompt-history"></div></div>
         <div class="main-content">
-            <div id="response-area">
-                ¡Hola! Soy SYRÓ, tu agente modular de ideas y acción. ¿En qué puedo ayudarte hoy?
-            </div>
+            <div id="response-area">¡Hola! Soy SYRÓ, tu agente modular de ideas y acción. ¿En qué puedo ayudarte hoy?</div>
             <div id="input-area">
                 <input type="text" id="command-input" placeholder="Escribe una directiva..." autocomplete="off">
-                <button id="send-button" title="Enviar Directiva">
-                    <span class="material-icons">send</span>
-                </button>
+                <button id="send-button" title="Enviar Directiva"><span class="material-icons">send</span></button>
             </div>
         </div>
     </div>
@@ -144,50 +115,20 @@
         const apiEndpoint = '/api/syro';
         const sendIcon = '<span class="material-icons">send</span>';
         const processingText = '...';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            responseArea.textContent = '¡Hola! Soy SYRÓ, tu agente modular de ideas y acción. ¿En qué puedo ayudarte hoy?';
-        });
-
+        document.addEventListener('DOMContentLoaded', () => { responseArea.textContent = '¡Hola! Soy SYRÓ, tu agente modular de ideas y acción. ¿En qué puedo ayudarte hoy?'; });
         sendButton.addEventListener('click', sendRequest);
         commandInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendRequest(); });
-
-        function addPromptToHistory(text) {
-            const button = document.createElement('button');
-            button.className = 'prompt-button';
-            button.textContent = text;
-            button.onclick = () => { commandInput.value = text; sendRequest(); };
-            promptHistoryContainer.appendChild(button);
-            promptHistoryContainer.scrollTop = promptHistoryContainer.scrollHeight;
-        }
-
+        function addPromptToHistory(text) { const button = document.createElement('button'); button.className = 'prompt-button'; button.textContent = text; button.onclick = () => { commandInput.value = text; sendRequest(); }; promptHistoryContainer.appendChild(button); promptHistoryContainer.scrollTop = promptHistoryContainer.scrollHeight; }
         async function sendRequest() {
-            const userInput = commandInput.value.trim();
-            if (userInput === '') return;
-            addPromptToHistory(userInput);
-            sendButton.disabled = true;
-            sendButton.innerHTML = processingText;
-            commandInput.value = '';
-            responseArea.textContent = "Procesando...";
+            const userInput = commandInput.value.trim(); if (userInput === '') return;
+            addPromptToHistory(userInput); sendButton.disabled = true; sendButton.innerHTML = processingText; commandInput.value = ''; responseArea.textContent = "Procesando...";
             try {
-                const response = await fetch(apiEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: userInput })
-                });
+                const response = await fetch(apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: userInput }) });
                 if (!response.ok) { const errorText = await response.text(); throw new Error(errorText || `Error de servidor: ${response.status}`); }
-                const resultText = await response.text();
-                const resultJson = JSON.parse(resultText);
-                const syroResponse = resultJson.candidates[0].content.parts[0].text;
+                const resultText = await response.text(); const resultJson = JSON.parse(resultText); const syroResponse = resultJson.candidates[0].content.parts[0].text;
                 responseArea.textContent = syroResponse;
-            } catch (error) {
-                const errorMessage = "Hubo un error al procesar tu solicitud. Por favor, intenta de nuevo.";
-                responseArea.textContent = errorMessage;
-                console.error(error);
-            } finally {
-                sendButton.disabled = false;
-                sendButton.innerHTML = sendIcon;
-            }
+            } catch (error) { const errorMessage = "Hubo un error al procesar tu solicitud. Por favor, intenta de nuevo."; responseArea.textContent = errorMessage; console.error(error);
+            } finally { sendButton.disabled = false; sendButton.innerHTML = sendIcon; }
         }
     </script>
 </body>
