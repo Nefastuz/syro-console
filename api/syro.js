@@ -24,18 +24,33 @@ export default async function handler(req, res) {
 
       if (!key || !content) { return res.status(400).json({ message: "Formato incorrecto. Use: !MEMORIZE clave : contenido" }); }
 
-      const { error } = await supabase.from('knowledge_base').insert([{ key: key.trim(), content: content }]);
+      // --- INICIO DE LA CORRECCIÓN ---
+      // Usamos los nombres de columna correctos: 'keyword' e 'information'
+      const { error } = await supabase
+        .from('knowledge_base')
+        .insert([{ keyword: key.trim(), information: content }]);
+      // --- FIN DE LA CORRECCIÓN ---
+        
       if (error) { throw new Error(`Error en Supabase al escribir memoria: ${error.message}`); }
       
       return res.status(200).json({ message: `Memoria guardada con la clave: '${key.trim()}'` });
     }
 
-    const { data: memories, error: memoryError } = await supabase.from('knowledge_base').select('key, content');
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Leemos usando los nombres de columna correctos: 'keyword' e 'information'
+    const { data: memories, error: memoryError } = await supabase
+      .from('knowledge_base')
+      .select('keyword, information');
+    // --- FIN DE LA CORRECCIÓN ---
+
     if (memoryError) { throw new Error(`Error en Supabase al leer memoria: ${memoryError.message}`); }
 
     let memoryContext = "No hay conocimiento base disponible.";
     if (memories && memories.length > 0) {
-      memoryContext = memories.map(mem => `- ${mem.key}: ${mem.content}`).join('\n');
+      // --- INICIO DE LA CORRECCIÓN ---
+      // Formateamos la salida usando los nombres de columna correctos
+      memoryContext = memories.map(mem => `- ${mem.keyword}: ${mem.information}`).join('\n');
+      // --- FIN DE LA CORRECCIÓN ---
     }
     
     const systemPrompt = `**Core Identity:**\nEres SYRÓ...\n\n**Source of Knowledge:**\nUtiliza el siguiente conocimiento base como la verdad fundamental para tu trabajo. Estos son hechos y directivas establecidos.\n---\n${memoryContext}\n---\n... (resto de la Constitución)`;
