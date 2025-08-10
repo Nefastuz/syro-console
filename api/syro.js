@@ -1,4 +1,7 @@
 // Archivo: api/syro.js
+
+// Re-despliegue forzado para invalidar caché de Vercel.
+
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
