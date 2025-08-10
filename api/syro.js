@@ -7,7 +7,11 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// CORRECCIÓN: Se restaura la configuración del cliente para apuntar al Vercel AI Gateway.
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_API_BASE, // Esta línea es CRÍTICA.
+});
 
 const EMBEDDING_MODEL = 'text-embedding-3-small';
 const COMPLETION_MODEL = 'gpt-oss-20b';
