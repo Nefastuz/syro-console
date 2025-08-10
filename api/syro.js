@@ -1,7 +1,4 @@
 // Archivo: api/syro.js
-
-// Re-despliegue forzado para invalidar caché de Vercel.
-
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,19 +8,19 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+// [CORRECCIÓN DEFINITIVA] Se elimina la baseURL para apuntar directamente a la API de OpenAI.
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_API_BASE,
 });
 
 const EMBEDDING_MODEL = 'text-embedding-3-small';
-const COMPLETION_MODEL = 'gpt-oss-20b';
+const COMPLETION_MODEL = 'gpt-oss-20b'; // Asegúrese de que este modelo esté disponible en su cuenta de OpenAI.
 const MATCH_THRESHOLD = 0.73;
 const MATCH_COUNT = 5;
 
 export const config = { api: { bodyParser: true } };
 
-// --- Handler Principal ---
+// ... el resto del archivo (handler, funciones de comando) permanece exactamente igual ...
 export default async function handler(req, res) {
   const userInput = req.body?.prompt?.text;
   if (!userInput) { return res.status(400).json({ error: { code: 'invalid_request', message: 'MCP request must include a `prompt.text` field.' } }); }
@@ -71,7 +68,6 @@ export default async function handler(req, res) {
       ? matchedKnowledge.map(k => `- ${k.content}`).join('\n')
       : "No hay conocimiento relevante en la base de datos para esta consulta.";
     
-    // [CORRECCIÓN] System Prompt enfocado en la identidad de SYRÓ.
     const systemPrompt = `Eres SYRÓ, un agente modular de ideas y acción. Tu propósito es asistir al usuario de forma clara, concisa y directa.
     
 Tus capacidades actuales son:
