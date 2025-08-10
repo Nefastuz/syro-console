@@ -2,7 +2,6 @@ import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
 // --- Configuración ---
-// CORRECCIÓN CRÍTICA: Forzar la recarga del esquema de la base de datos.
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY,
@@ -46,6 +45,7 @@ export default async function handler(req, res) {
     const queryEmbeddingResponse = await openai.embeddings.create({ model: EMBEDDING_MODEL, input: userInput });
     const queryEmbedding = queryEmbeddingResponse.data[0].embedding;
 
+    // CORRECCIÓN CRÍTICA: Los nombres de los parámetros ahora coinciden con la función de la base de datos.
     const { data: matchedKnowledge, error: matchError } = await supabase.rpc('match_knowledge', {
       p_query_embedding: queryEmbedding,
       p_match_threshold: MATCH_THRESHOLD,
