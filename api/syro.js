@@ -14,7 +14,8 @@ const openai = new OpenAI({
 
 const EMBEDDING_MODEL = 'text-embedding-3-small';
 const COMPLETION_MODEL = 'gpt-oss-20b';
-const MATCH_THRESHOLD = 0.78;
+// CORRECCIÓN: Se reduce el umbral para ser menos restrictivo en la búsqueda.
+const MATCH_THRESHOLD = 0.73; 
 const MATCH_COUNT = 5;
 
 export const config = { api: { bodyParser: true } };
@@ -30,7 +31,6 @@ export default async function handler(req, res) {
 
   try {
     if (userInput.startsWith('!MEMORIZE')) {
-      // ... (La lógica de !MEMORIZE no cambia)
       const contentToMemorize = userInput.replace('!MEMORIZE', '').trim();
       const [key, ...contentParts] = contentToMemorize.split(':');
       const content = `[${key.trim()}] ${contentParts.join(':').trim()}`;
@@ -42,7 +42,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ completion: { choices: [{ text: `Memoria semántica guardada para la clave: '${key.trim()}'` }] } });
     }
 
-    // --- LÓGICA DE LECTURA: RAG (VORO v2.0 - Robustecida) ---
     const queryEmbeddingResponse = await openai.embeddings.create({ model: EMBEDDING_MODEL, input: userInput });
     const queryEmbedding = queryEmbeddingResponse.data[0].embedding;
 
@@ -54,7 +53,6 @@ export default async function handler(req, res) {
         match_count: MATCH_COUNT,
       });
 
-      // CORRECCIÓN: Manejo explícito de errores de RPC
       if (matchError) {
         throw new Error(`Error en RPC match_knowledge: ${matchError.message}`);
       }
@@ -68,7 +66,6 @@ export default async function handler(req, res) {
         memoryContext = "ADVERTENCIA: La búsqueda de conocimiento falló. Procediendo sin contexto de memoria.";
     }
     
-    // --- CONTEXTUALIZACIÓN Y COMPLETACIÓN ---
     const systemPrompt = `**Core Identity:**\nEres SYRÓ...\n\n**Relevant Knowledge (VORO v2.0 - RAG):**\n${memoryContext}\n\n... (resto de la constitución)`;
 
     const completion = await openai.chat.completions.create({
