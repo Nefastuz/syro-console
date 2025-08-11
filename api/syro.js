@@ -1,35 +1,22 @@
-// Archivo: api/syro.js (Versión de Conexión Directa a Groq)
+// Archivo: api/syro.js (Restaurando el modelo canónico)
 import OpenAI from 'openai';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js'; // La memoria sigue deshabilitada
 
-// --- Configuración de Clientes ---
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
-// [PIVOTE DE ARQUITECTURA] Se inicializa el cliente de OpenAI para apuntar DIRECTAMENTE a la API de Groq.
 const groq = new OpenAI({ 
-  apiKey: process.env.GROQ_API_KEY, // Usamos la clave de Groq
-  baseURL: 'https://api.groq.com/openai/v1', // Usamos el endpoint de Groq
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: 'https://api.groq.com/openai/v1',
 });
 
-// --- Configuración de Modelos ---
-// NOTA: Groq no ofrece un modelo de embeddings. La lógica RAG está deshabilitada.
-const COMPLETION_MODEL = 'llama3-8b-8192'; // Un modelo rápido y fiable disponible en Groq
+// [RESTAURACIÓN] Volvemos al modelo solicitado originalmente, ahora a través de Groq.
+const COMPLETION_MODEL = 'gpt-oss-120b'; 
 
 export const config = { api: { bodyParser: true } };
 
-// --- Handler Principal ---
 export default async function handler(req, res) {
   const userInput = req.body?.prompt?.text;
   if (!userInput) { return res.status(400).json({ error: { code: 'invalid_request', message: 'MCP request must include a `prompt.text` field.' } }); }
 
   try {
-    // --- Lógica Simplificada (Sin RAG) ---
-    // La lógica de !MEMORIZE y la búsqueda de embeddings están deshabilitadas
-    // porque Groq no provee un servicio de embeddings.
-    
     const systemPrompt = `Eres SYRÓ, un agente de IA. Responde de forma concisa y directa.`;
 
     const completion = await groq.chat.completions.create({
