@@ -15,7 +15,6 @@ const openai = new OpenAI({
 export const config = { api: { bodyParser: true } };
 
 export default async function handler(req, res) {
-  // [CORRECCIÓN] Aseguramos que el backend espera la clave "command"
   const userInput = req.body?.command;
   if (!userInput) { 
     return res.status(400).json({ message: 'El campo "command" es requerido.' }); 
@@ -49,7 +48,8 @@ export default async function handler(req, res) {
     const systemPrompt = `**Core Identity:**\nEres SYRÓ...\n\n**Source of Knowledge:**\n${memoryContext}\n---\n... (resto de la Constitución)`;
 
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-oss-120b',
+      // [CORRECCIÓN] Se añade el prefijo del proveedor para el enrutamiento correcto.
+      model: 'huggingface:openai/gpt-oss-120b',
       messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userInput }],
       temperature: 0.2,
       max_tokens: 1024,
