@@ -1,4 +1,4 @@
-<!-- Archivo: index.html (Versión Canónica Limpia) -->
+<!-- Archivo: index.html (Versión Responsive) -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,27 +8,158 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; color: #EAEAEA; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; background-color: #132041; }
-        .background-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(110% 100% at 90% 90%, #af1c1e 0%, #193656 60%, #132041 90%); z-index: -1; overflow: hidden; }
-        .workspace-container { width: 90%; max-width: 1400px; height: 90vh; display: flex; overflow: hidden; background: rgba(25, 54, 86, 0.25); backdrop-filter: blur(50px) saturate(110%); -webkit-backdrop-filter: blur(50px) saturate(110%); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
-        .sidebar { width: 30%; max-width: 350px; border-right: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; padding: 20px; gap: 15px; }
-        .sidebar h2 { margin: 0; margin-bottom: 10px; font-size: 1.5em; color: #FFFFFF; font-weight: 600; }
-        #prompt-history { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .prompt-button { width: 100%; padding: 12px 15px; border-radius: 8px; background-color: rgba(34, 35, 43, 0.4); border: 1px solid rgba(34, 35, 43, 0.6); color: rgba(255, 255, 255, 0.85); text-align: left; font-size: 14px; cursor: pointer; transition: background-color 0.2s; }
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; }
-        #input-area { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 15px; align-items: center; flex-shrink: 0; }
-        #command-input { flex-grow: 1; background: rgba(34, 35, 43, 0.5); border: 1px solid rgba(34, 35, 43, 0.7); border-radius: 50px; padding: 12px 20px; color: #FFFFFF; outline: none; font-size: 1em; }
-        #send-button { background-color: #af1c1e; color: white; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: grid; place-items: center; flex-shrink: 0; transition: all 0.2s; border: 1.5px solid rgba(255, 255, 255, 0.8); box-shadow: 0 0 12px rgba(175, 28, 30, 0.5); }
-        #response-area { flex-grow: 1; padding: 20px 40px; font-size: 1em; line-height: 1.7; color: rgba(255,255,255,0.85); overflow-y: auto; }
-        #response-area h1, #response-area h2, #response-area h3 { color: #FFFFFF; font-weight: 600; margin-top: 24px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
-        #response-area p { margin: 0 0 16px 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            color: #EAEAEA; 
+            background-color: #132041; 
+            /* [RESPONSIVE] Se eliminan flex, justify-content, align-items para que el body ocupe todo el espacio */
+        }
+        .background-layer { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: radial-gradient(110% 100% at 90% 90%, #af1c1e 0%, #193656 60%, #132041 90%); 
+            z-index: -1; 
+            overflow: hidden; 
+        }
+        .workspace-container { 
+            /* [RESPONSIVE] Diseño base para móviles */
+            width: 100%; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; /* Colapsa a una sola columna en móviles */
+            box-sizing: border-box; /* Asegura que el padding no desborde */
+            background: rgba(25, 54, 86, 0.25); 
+            backdrop-filter: blur(50px) saturate(110%); 
+            -webkit-backdrop-filter: blur(50px) saturate(110%);
+            /* [RESPONSIVE] Se eliminan bordes y sombras para una apariencia full-screen en móvil */
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .sidebar { 
+            /* [RESPONSIVE] El sidebar ahora es un header en móviles */
+            width: 100%; 
+            max-width: none;
+            height: auto;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; 
+            flex-direction: row; /* Elementos en fila */
+            align-items: center; /* Centra verticalmente */
+            justify-content: space-between; /* Espacia el título y el historial */
+            padding: 10px 15px; 
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.2em; 
+            color: #FFFFFF; 
+            font-weight: 600; 
+        }
+        #prompt-history { 
+            /* [RESPONSIVE] El historial se oculta en móviles para ahorrar espacio */
+            display: none; 
+        }
+        .main-content { 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; /* Previene desbordamiento del contenido */
+        }
+        #input-area { 
+            padding: 10px 15px; 
+            border-top: 1px solid rgba(255, 255, 255, 0.1); 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            flex-shrink: 0; 
+        }
+        #command-input { 
+            flex-grow: 1; 
+            background: rgba(34, 35, 43, 0.5); 
+            border: 1px solid rgba(34, 35, 43, 0.7); 
+            border-radius: 50px; 
+            padding: 10px 15px; 
+            color: #FFFFFF; 
+            outline: none; 
+            font-size: 1em; 
+        }
+        #send-button { 
+            background-color: #af1c1e; 
+            color: white; 
+            border-radius: 50%; 
+            width: 44px; /* Ligeramente más pequeño para móviles */
+            height: 44px; 
+            cursor: pointer; 
+            display: grid; 
+            place-items: center; 
+            flex-shrink: 0; 
+            transition: all 0.2s; 
+            border: 1.5px solid rgba(255, 255, 255, 0.8); 
+            box-shadow: 0 0 12px rgba(175, 28, 30, 0.5); 
+        }
+        #response-area { 
+            flex-grow: 1; 
+            padding: 15px; 
+            font-size: 1em; 
+            line-height: 1.6; 
+            color: rgba(255,255,255,0.85); 
+            overflow-y: auto; 
+        }
+        #response-area h1, #response-area h2, #response-area h3 { color: #FFFFFF; font-weight: 600; margin-top: 20px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+        #response-area p { margin: 0 0 12px 0; }
         #response-area code { background-color: rgba(34, 35, 43, 0.8); padding: 3px 6px; border-radius: 6px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.9em; }
+
+        /* [RESPONSIVE] Media Query para pantallas de escritorio (a partir de 768px) */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            .workspace-container {
+                width: 90%;
+                max-width: 1400px;
+                height: 90vh;
+                flex-direction: row; /* Vuelve a la disposición de columnas */
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            }
+            .sidebar {
+                width: 30%;
+                max-width: 350px;
+                border-right: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: none;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px;
+                gap: 15px;
+            }
+            .sidebar h2 { font-size: 1.5em; }
+            #prompt-history {
+                display: flex; /* Muestra el historial en escritorio */
+            }
+            #input-area { padding: 20px; gap: 15px; }
+            #command-input { padding: 12px 20px; }
+            #send-button { width: 48px; height: 48px; }
+            #response-area { padding: 20px 40px; }
+        }
     </style>
 </head>
 <body>
     <div class="background-layer"></div>
     <div class="workspace-container">
-        <div class="sidebar"><h2>SYRÓ</h2><div id="prompt-history"></div></div>
+        <div class="sidebar">
+            <h2>SYRÓ</h2>
+            <div id="prompt-history"></div>
+        </div>
         <div class="main-content">
             <div id="response-area">¡Hola! Soy SYRÓ, tu agente modular de ideas y acción. ¿En qué puedo ayudarte hoy?</div>
             <div id="input-area">
@@ -38,6 +169,7 @@
         </div>
     </div>
     <script>
+        // El JavaScript no requiere cambios.
         const commandInput = document.getElementById('command-input');
         const sendButton = document.getElementById('send-button');
         const promptHistoryContainer = document.getElementById('prompt-history');
