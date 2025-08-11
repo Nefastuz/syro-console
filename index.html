@@ -72,7 +72,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     // [CORRECCIÓN] Aseguramos que el payload usa la clave "command"
-                    body: JSON.stringify({ command: userInput })
+                    body: JSON.stringify({ prompt: { text: userInput } })
                 });
                 if (!response.ok) {
                     const errorJson = await response.json();
