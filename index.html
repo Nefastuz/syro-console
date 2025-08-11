@@ -15,7 +15,6 @@
         .sidebar h2 { margin: 0; margin-bottom: 10px; font-size: 1.5em; color: #FFFFFF; font-weight: 600; }
         #prompt-history { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
         .prompt-button { width: 100%; padding: 12px 15px; border-radius: 8px; background-color: rgba(34, 35, 43, 0.4); border: 1px solid rgba(34, 35, 43, 0.6); color: rgba(255, 255, 255, 0.85); text-align: left; font-size: 14px; cursor: pointer; transition: background-color 0.2s; }
-        .prompt-button:hover { background-color: rgba(34, 35, 43, 0.6); }
         .main-content { flex-grow: 1; display: flex; flex-direction: column; }
         #input-area { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 15px; align-items: center; flex-shrink: 0; }
         #command-input { flex-grow: 1; background: rgba(34, 35, 43, 0.5); border: 1px solid rgba(34, 35, 43, 0.7); border-radius: 50px; padding: 12px 20px; color: #FFFFFF; outline: none; font-size: 1em; }
@@ -56,7 +55,6 @@
             button.textContent = text;
             button.onclick = () => { commandInput.value = text; sendRequest(); };
             promptHistoryContainer.appendChild(button);
-            promptHistoryContainer.scrollTop = promptHistoryContainer.scrollHeight;
         }
 
         async function sendRequest() {
@@ -71,16 +69,14 @@
                 const response = await fetch(apiEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // [CORRECCIÓN] Aseguramos que el payload usa la clave "command"
                     body: JSON.stringify({ prompt: { text: userInput } })
                 });
                 if (!response.ok) {
                     const errorJson = await response.json();
-                    throw new Error(errorJson.message || `Error de servidor: ${response.status}`);
+                    throw new Error(errorJson.error?.message || `Error de servidor: ${response.status}`);
                 }
                 const resultJson = await response.json();
-                // La respuesta del Gateway ya viene en el formato correcto
-                const syroResponse = resultJson.choices[0].message.content;
+                const syroResponse = resultJson.completion.choices[0].text;
                 responseArea.innerHTML = marked.parse(syroResponse);
             } catch (error) {
                 const errorMessage = "Hubo un error al procesar tu solicitud. Por favor, intenta de nuevo.";
