@@ -20,8 +20,6 @@
         #input-area { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 15px; align-items: center; flex-shrink: 0; }
         #command-input { flex-grow: 1; background: rgba(34, 35, 43, 0.5); border: 1px solid rgba(34, 35, 43, 0.7); border-radius: 50px; padding: 12px 20px; color: #FFFFFF; outline: none; font-size: 1em; }
         #send-button { background-color: #af1c1e; color: white; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: grid; place-items: center; flex-shrink: 0; transition: all 0.2s; border: 1.5px solid rgba(255, 255, 255, 0.8); box-shadow: 0 0 12px rgba(175, 28, 30, 0.5); }
-        #send-button:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(175, 28, 30, 0.7); }
-        #send-button:disabled { background-color: rgba(34, 35, 43, 0.8); cursor: not-allowed; box-shadow: none; border-color: rgba(255,255,255,0.2); }
         #response-area { flex-grow: 1; padding: 20px 40px; font-size: 1em; line-height: 1.7; color: rgba(255,255,255,0.85); overflow-y: auto; }
         #response-area h1, #response-area h2, #response-area h3 { color: #FFFFFF; font-weight: 600; margin-top: 24px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
         #response-area p { margin: 0 0 16px 0; }
@@ -73,14 +71,16 @@
                 const response = await fetch(apiEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: { text: userInput } })
+                    // [CORRECCIÓN] Aseguramos que el payload usa la clave "command"
+                    body: JSON.stringify({ command: userInput })
                 });
                 if (!response.ok) {
                     const errorJson = await response.json();
-                    throw new Error(errorJson.error?.message || `Error de servidor: ${response.status}`);
+                    throw new Error(errorJson.message || `Error de servidor: ${response.status}`);
                 }
                 const resultJson = await response.json();
-                const syroResponse = resultJson.completion.choices[0].text;
+                // La respuesta del Gateway ya viene en el formato correcto
+                const syroResponse = resultJson.choices[0].message.content;
                 responseArea.innerHTML = marked.parse(syroResponse);
             } catch (error) {
                 const errorMessage = "Hubo un error al procesar tu solicitud. Por favor, intenta de nuevo.";

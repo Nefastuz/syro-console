@@ -2,13 +2,11 @@
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
-// Inicialización del cliente de Supabase para la memoria
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
-// Inicialización del cliente de OpenAI para apuntar al Vercel AI Gateway
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY, 
   baseURL: process.env.OPENAI_API_BASE 
@@ -17,13 +15,13 @@ const openai = new OpenAI({
 export const config = { api: { bodyParser: true } };
 
 export default async function handler(req, res) {
+  // [CORRECCIÓN] Aseguramos que el backend espera la clave "command"
   const userInput = req.body?.command;
   if (!userInput) { 
     return res.status(400).json({ message: 'El campo "command" es requerido.' }); 
   }
 
   try {
-    // Lógica para el comando !MEMORIZE
     if (userInput.startsWith('!MEMORIZE')) {
       const contentToMemorize = userInput.replace('!MEMORIZE', '').trim();
       const [key, ...contentParts] = contentToMemorize.split(':');
@@ -36,11 +34,10 @@ export default async function handler(req, res) {
       const { error } = await supabase.from('knowledge_base').insert([{ keyword: key.trim(), information: content }]);
       if (error) { throw new Error(`Error en Supabase al escribir memoria: ${error.message}`); }
       
-      const successResponse = { candidates: [{ content: { parts: [{ text: `Memoria guardada con la clave: '${key.trim()}'` }] } }] };
+      const successResponse = { choices: [{ message: { content: `Memoria guardada con la clave: '${key.trim()}'` } }] };
       return res.status(200).json(successResponse);
     }
 
-    // Lógica de consulta normal
     const { data: memories, error: memoryError } = await supabase.from('knowledge_base').select('keyword, information');
     if (memoryError) { throw new Error(`Error en Supabase al leer memoria: ${memoryError.message}`); }
 
@@ -52,13 +49,12 @@ export default async function handler(req, res) {
     const systemPrompt = `**Core Identity:**\nEres SYRÓ...\n\n**Source of Knowledge:**\n${memoryContext}\n---\n... (resto de la Constitución)`;
 
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-oss-120b', // Modelo correcto según la UI de Vercel
+      model: 'openai/gpt-oss-120b',
       messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userInput }],
       temperature: 0.2,
       max_tokens: 1024,
     });
 
-    // La respuesta del Gateway ya tiene el formato correcto, solo la reenviamos.
     res.status(200).json(completion);
 
   } catch (error) {
