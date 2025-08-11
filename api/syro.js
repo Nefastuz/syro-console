@@ -13,7 +13,8 @@ const openai = new OpenAI({
 });
 
 const EMBEDDING_MODEL = 'text-embedding-3-small';
-const COMPLETION_MODEL = 'huggingface:openai/gpt-oss-120b';
+// [PIVOTE ESTRATÉGICO] Se reemplaza el modelo no soportado por uno nativo del Gateway.
+const COMPLETION_MODEL = 'groq:llama3-8b-8192'; 
 const MATCH_THRESHOLD = 0.73;
 const MATCH_COUNT = 5;
 
