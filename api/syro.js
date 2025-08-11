@@ -1,14 +1,14 @@
-// Archivo: api/syro.js (Restaurando el modelo canónico)
+// Archivo: api/syro.js (Versión Final con Modelo Soportado)
 import OpenAI from 'openai';
-// import { createClient } from '@supabase/supabase-js'; // La memoria sigue deshabilitada
+// import { createClient } from '@supabase/supabase-js'; // La memoria RAG sigue deshabilitada
 
 const groq = new OpenAI({ 
   apiKey: process.env.GROQ_API_KEY,
   baseURL: 'https://api.groq.com/openai/v1',
 });
 
-// [RESTAURACIÓN] Volvemos al modelo solicitado originalmente, ahora a través de Groq.
-const COMPLETION_MODEL = 'gpt-oss-120b'; 
+// [PIVOTE FINAL] Se selecciona un modelo que está garantizado para funcionar en el nivel gratuito de Groq.
+const COMPLETION_MODEL = 'llama3-8b-8192'; 
 
 export const config = { api: { bodyParser: true } };
 
