@@ -1,4 +1,4 @@
-<!-- Archivo: index.html (Versión Responsive) -->
+<!-- Archivo: index.html (Versión Responsive Corregida) -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,7 +13,6 @@
             margin: 0; 
             color: #EAEAEA; 
             background-color: #132041; 
-            /* [RESPONSIVE] Se eliminan flex, justify-content, align-items para que el body ocupe todo el espacio */
         }
         .background-layer { 
             position: fixed; 
@@ -26,31 +25,29 @@
             overflow: hidden; 
         }
         .workspace-container { 
-            /* [RESPONSIVE] Diseño base para móviles */
             width: 100%; 
-            height: 100vh; 
+            /* [FIX] Se reemplaza 100vh por 100dvh para adaptarse correctamente a los viewports móviles. */
+            height: 100dvh; 
             display: flex; 
-            flex-direction: column; /* Colapsa a una sola columna en móviles */
-            box-sizing: border-box; /* Asegura que el padding no desborde */
+            flex-direction: column;
+            box-sizing: border-box;
             background: rgba(25, 54, 86, 0.25); 
             backdrop-filter: blur(50px) saturate(110%); 
             -webkit-backdrop-filter: blur(50px) saturate(110%);
-            /* [RESPONSIVE] Se eliminan bordes y sombras para una apariencia full-screen en móvil */
             border-radius: 0;
             border: none;
             box-shadow: none;
         }
         .sidebar { 
-            /* [RESPONSIVE] El sidebar ahora es un header en móviles */
             width: 100%; 
             max-width: none;
             height: auto;
             border-right: none;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex; 
-            flex-direction: row; /* Elementos en fila */
-            align-items: center; /* Centra verticalmente */
-            justify-content: space-between; /* Espacia el título y el historial */
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
             padding: 10px 15px; 
             box-sizing: border-box;
             flex-shrink: 0;
@@ -62,14 +59,13 @@
             font-weight: 600; 
         }
         #prompt-history { 
-            /* [RESPONSIVE] El historial se oculta en móviles para ahorrar espacio */
             display: none; 
         }
         .main-content { 
             flex-grow: 1; 
             display: flex; 
             flex-direction: column; 
-            overflow: hidden; /* Previene desbordamiento del contenido */
+            overflow: hidden;
         }
         #input-area { 
             padding: 10px 15px; 
@@ -93,7 +89,7 @@
             background-color: #af1c1e; 
             color: white; 
             border-radius: 50%; 
-            width: 44px; /* Ligeramente más pequeño para móviles */
+            width: 44px;
             height: 44px; 
             cursor: pointer; 
             display: grid; 
@@ -115,7 +111,6 @@
         #response-area p { margin: 0 0 12px 0; }
         #response-area code { background-color: rgba(34, 35, 43, 0.8); padding: 3px 6px; border-radius: 6px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.9em; }
 
-        /* [RESPONSIVE] Media Query para pantallas de escritorio (a partir de 768px) */
         @media (min-width: 768px) {
             body {
                 display: flex;
@@ -126,8 +121,8 @@
             .workspace-container {
                 width: 90%;
                 max-width: 1400px;
-                height: 90vh;
-                flex-direction: row; /* Vuelve a la disposición de columnas */
+                height: 90vh; /* vh es correcto para escritorio */
+                flex-direction: row;
                 border-radius: 24px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -144,7 +139,7 @@
             }
             .sidebar h2 { font-size: 1.5em; }
             #prompt-history {
-                display: flex; /* Muestra el historial en escritorio */
+                display: flex;
             }
             #input-area { padding: 20px; gap: 15px; }
             #command-input { padding: 12px 20px; }
