@@ -1,4 +1,4 @@
-// Archivo: api/syro.js (v2.7 - Prefijos de Comando '/' implementados)
+// Archivo: api/syro.js (v2.8 - OpenAI Embeddings)
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import fs from 'fs/promises';
@@ -7,33 +7,26 @@ import path from 'path';
 // --- Configuración de Clientes ---
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // Cliente específico para OpenAI
 
 // --- Constantes del Modelo ---
-const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/Xenova/bge-small-en-v1.5";
+const EMBEDDING_MODEL = 'text-embedding-3-small';
 const COMPLETION_MODEL = 'llama3-8b-8192'; 
 const MATCH_THRESHOLD = 0.7;
 const MATCH_COUNT = 10;
 
 // --- Funciones Auxiliares ---
 async function generateEmbedding(text) {
-    const response = await fetch(
-        EMBEDDING_MODEL_API_URL,
-        {
-            headers: { 
-                'Authorization': `Bearer ${process.env.HF_TOKEN}`,
-                'Content-Type': 'application/json' 
-            },
-            method: "POST",
-            body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
-        }
-    );
-    if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("Error detallado de la API de Hugging Face:", errorBody);
-        throw new Error(`Error en la API de Embeddings de Hugging Face: ${errorBody}`);
+    try {
+        const response = await openai.embeddings.create({
+            model: EMBEDDING_MODEL,
+            input: text.replace(/\n/g, ' '),
+        });
+        return response.data[0].embedding;
+    } catch (error) {
+        console.error("Error detallado de la API de OpenAI Embeddings:", error);
+        throw new Error(`Error en la API de Embeddings de OpenAI: ${error.message}`);
     }
-    const data = await response.json();
-    return data[0];
 }
 
 async function getProjectVersion() {
@@ -80,7 +73,7 @@ export default async function handler(req, res) {
 
 **Versión del Sistema:** ${version}
 **Estado del Módulo KHA (Creatividad):** Operativo (Groq - ${COMPLETION_MODEL})
-**Estado del Módulo VORO (Memoria):** Operativo (Hugging Face Embeddings)
+**Estado del Módulo VORO (Memoria):** Operativo (OpenAI Embeddings - ${EMBEDDING_MODEL})
 
 ## SECCIÓN 2: CONOCIMIENTO RECIENTE
 
@@ -100,12 +93,13 @@ _ckp_archive_ para mantener la integridad del legado del proyecto.
 
         // --- Flujo de /memorize ---
         if (lowerCaseInput.startsWith('/memorize ')) {
-            if (!process.env.HF_TOKEN) {
-                throw new Error("La variable de entorno HF_TOKEN es necesaria para la memorización.");
+            if (!process.env.OPENAI_API_KEY) {
+                throw new Error("La variable de entorno OPENAI_API_KEY es necesaria para la memorización.");
             }
             const contentToMemorize = userInput.substring('/memorize'.length).trim();
             const [key, ...contentParts] = contentToMemorize.split(':');
-            const content = `[${key.trim()}] ${contentParts.join(':').trim()}`;
+            const content = `[${key.trim()}] ${contentParts.join(':').trim()}
+`;
             if (!key || !contentParts.join(':').trim()) { return res.status(400).json({ error: { code: 'invalid_arguments', message: "Formato incorrecto. Use: /memorize clave : contenido" } }); }
             
             const embedding = await generateEmbedding(content);
@@ -118,9 +112,9 @@ _ckp_archive_ para mantener la integridad del legado del proyecto.
         }
 
         // --- Flujo de Consulta (RAG + KHA) ---
-        let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de Hugging Face (HF_TOKEN).";
+        let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de OpenAI (OPENAI_API_KEY).";
 
-        if (process.env.HF_TOKEN) {
+        if (process.env.OPENAI_API_KEY) {
             const queryEmbedding = await generateEmbedding(userInput);
 
             const { data: matchedKnowledge, error: matchError } = await supabase.rpc('match_knowledge', {
