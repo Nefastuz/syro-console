@@ -1,2 +1,11 @@
+# Vercel
 .vercel
+
+# Node
 node_modules
+
+# Environment variables
+.env
+
+# Project Archive
+_ckp_archive/
