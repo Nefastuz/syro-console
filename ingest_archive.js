@@ -1,4 +1,4 @@
-// Archivo: ingest_archive.js (v1.2 - URL de API Corregida)
+// Archivo: ingest_archive.js (v1.3 - Cabecera Content-Type Corregida)
 import 'dotenv/config';
 import fs from 'fs/promises';
 import path from 'path';
@@ -6,7 +6,6 @@ import { createClient } from '@supabase/supabase-js';
 
 // --- Configuración ---
 const ARCHIVE_PATH = path.join(process.cwd(), '_ckp_archive');
-// [CORRECCIÓN] URL de la API de Inferencia actualizada a la ruta correcta.
 const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2";
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY || !process.env.HF_TOKEN) {
@@ -22,7 +21,11 @@ async function generateEmbeddings(texts) {
     const response = await fetch(
         EMBEDDING_MODEL_API_URL,
         {
-            headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+            // [CORRECCIÓN] Añadir la cabecera Content-Type que requiere la API de Hugging Face.
+            headers: { 
+                'Authorization': `Bearer ${process.env.HF_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
             method: "POST",
             body: JSON.stringify({ inputs: texts, options: { wait_for_model: true } }),
         }
@@ -55,7 +58,8 @@ function chunkText(text, fileName) {
 
 async function processFile(filePath) {
     const fileName = path.basename(filePath);
-    console.log(`\n--- Procesando archivo: ${fileName} ---`);
+    console.log(`\n--- Procesando archivo: ${fileName} ---
+`);
     try {
         const content = await fs.readFile(filePath, 'utf-8');
         const chunks = chunkText(content, fileName);
@@ -65,7 +69,8 @@ async function processFile(filePath) {
             return;
         }
 
-        console.log(`  Se encontraron ${chunks.length} fragmentos. Generando embeddings en lotes...`);
+        console.log(`  Se encontraron ${chunks.length} fragmentos. Generando embeddings en lotes...
+`);
         
         const batchSize = 50;
         for (let i = 0; i < chunks.length; i += batchSize) {
@@ -81,16 +86,19 @@ async function processFile(filePath) {
                 embedding: embeddings[j],
             }));
 
-            console.log(`  Insertando lote ${Math.floor(i / batchSize) + 1} (${vectors.length} vectores) en la base de datos...`);
+            console.log(`  Insertando lote ${Math.floor(i / batchSize) + 1} (${vectors.length} vectores) en la base de datos...
+`);
             const { error } = await supabase.from('knowledge_vectors').insert(vectors);
 
             if (error) {
                 console.error(`    Error en el lote:`, error.message);
             } else {
-                console.log(`    Lote insertado con éxito.`);
+                console.log(`    Lote insertado con éxito.
+`);
             }
         }
-        console.log(`--- Archivo ${fileName} procesado con éxito ---`);
+        console.log(`--- Archivo ${fileName} procesado con éxito ---
+`);
     } catch (error) {
         console.error(`Error al procesar el archivo ${fileName}:`, error);
     }
@@ -117,7 +125,8 @@ async function main() {
             console.warn("ADVERTENCIA: No se encontró el archivo de constitución (000_constitution.md).");
         }
 
-        console.log(`Se encontraron ${markdownFiles.length} archivos de legado para procesar.`);
+        console.log(`Se encontraron ${markdownFiles.length} archivos de legado para procesar.
+`);
 
         for (const file of markdownFiles) {
             await processFile(path.join(ARCHIVE_PATH, file));

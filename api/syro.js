@@ -1,4 +1,4 @@
-// Archivo: api/syro.js (v2.3 - URL de API Corregida)
+// Archivo: api/syro.js (v2.4 - Cabecera Content-Type Corregida)
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
@@ -7,7 +7,6 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
 
 // --- Constantes del Modelo ---
-// [CORRECCIÓN] URL de la API de Inferencia actualizada a la ruta correcta.
 const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2";
 const COMPLETION_MODEL = 'llama3-8b-8192'; 
 const MATCH_THRESHOLD = 0.7;
@@ -18,7 +17,11 @@ async function generateEmbedding(text) {
     const response = await fetch(
         EMBEDDING_MODEL_API_URL,
         {
-            headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+            // [CORRECCIÓN] Añadir la cabecera Content-Type que requiere la API de Hugging Face.
+            headers: { 
+                'Authorization': `Bearer ${process.env.HF_TOKEN}`,
+                'Content-Type': 'application/json' 
+            },
             method: "POST",
             body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
         }
