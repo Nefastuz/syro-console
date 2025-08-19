@@ -43,7 +43,7 @@ async function main() {
         console.log(`Leyendo historial desde ${HISTORY_FILE_PATH}...`);
         const sessionHistory = await fs.readFile(HISTORY_FILE_PATH, 'utf-8');
         if (!sessionHistory) {
-            throw new Error(`El archivo ${HISTORY_FILE_PATH} está vacío.`);
+            throw new Error(`El archivo ${HISTORY_FILE_PATH} está vacío o no se encontró.`);
         }
 
         // 2. Preparar y enviar el prompt de análisis al LLM
@@ -56,54 +56,11 @@ HISTORIAL DE LA SESIÓN:
 ${sessionHistory}
 ---
 
-TAREAS DEL ANÁLISIS:
+TAREAS DEL ANÁLISis:
 1.  **Objetivo Alcanzado:** Describe en una frase clara cuál fue el hito principal que se logró en la sesión.
 2.  **Análisis de Anomalías:** Identifica los 2-3 patrones de error o ineficiencia más importantes que ocurrieron.
 3.  **Lecciones de Ingeniería:** Extrae las lecciones clave aprendidas de estos errores.
 4.  **Protocolos Evolucionados:** Lista los nuevos protocolos o ajustes al workflow que se acordaron.
 5.  **Vector de Continuidad:** Define claramente cuál es el próximo objetivo estratégico a abordar.
 
-Genera la respuesta directamente en formato Markdown, empezando por la sección "1. Resumen Ejecutivo".
-`;
-        const analysisCompletion = await groq.chat.completions.create({
-            model: COMPLETION_MODEL,
-            messages: [{ role: 'user', content: analysisPrompt }],
-            temperature: 0.1,
-        });
-        const analysisResult = analysisCompletion.choices[0].message.content;
-
-        // 3. Obtener metadatos adicionales
-        console.log("Obteniendo metadatos del proyecto (versión y último commit)...");
-        const [latestCommit, projectVersion] = await Promise.all([
-            getLatestCommit(),
-            getProjectVersion()
-        ]);
-        const currentDate = new Date().toISOString();
-
-        // 4. Ensamblar el informe final
-        const debriefReport = `
-# Informe de Sesión y Traspaso de Conocimiento (Debrief)
-
-**Fecha de Generación:** ${currentDate}
-**Versión del Proyecto:** ${projectVersion}
-**Commit de Cierre de Sesión:** 
-${latestCommit}
-**Autor:** Edu, Chief Systems Architect
-
----
-
-${analysisResult}
-`;
-        
-        // 5. Escribir el informe en el archivo de debrief
-        const finalPath = path.join(process.cwd(), DEBRIEF_FILE_PATH);
-        await fs.writeFile(finalPath, debriefReport.trim());
-        console.log(`
-Éxito: El informe de sesión ha sido actualizado en ${DEBRIEF_FILE_PATH}`);
-
-    } catch (error) {
-        console.error("\nError durante el proceso de debriefing:", error.message);
-    }
-}
-
-main();
+Genera la respuesta directamente en formato Markdown, empezando por la sección
