@@ -5,6 +5,7 @@
   "main": "api/syro.js",
   "type": "module",
   "dependencies": {
+    "@huggingface/transformers": "^3.7.2",
     "@supabase/supabase-js": "^2.55.0",
     "openai": "^5.12.2"
   },
@@ -15,5 +16,8 @@
   "license": "ISC",
   "engines": {
     "node": "20.x"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.1"
   }
 }
