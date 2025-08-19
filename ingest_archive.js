@@ -1,42 +1,36 @@
-// Archivo: ingest_archive.js
-// Propósito: Leer todos los archivos de _ckp_archive, generar embeddings localmente y guardarlos en Supabase.
+// Archivo: ingest_archive.js (Adaptado para Hugging Face Inference API)
 import 'dotenv/config';
 import fs from 'fs/promises';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import { pipeline } from '@huggingface/transformers';
 
 // --- Configuración ---
 const ARCHIVE_PATH = path.join(process.cwd(), '_ckp_archive');
-const EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
+const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2";
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    console.error("Error: Asegúrate de que las variables de entorno SUPABASE_URL y SUPABASE_ANON_KEY están definidas en tu archivo .env");
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY || !process.env.HF_TOKEN) {
+    console.error("Error: Asegúrate de que las variables de entorno SUPABASE_URL, SUPABASE_ANON_KEY, y HF_TOKEN están definidas en tu archivo .env");
     process.exit(1);
 }
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-// --- Cache para el Pipeline de Embeddings ---
-let extractor = null;
-class EmbeddingPipeline {
-    static async getInstance() {
-        if (this.instance === null) {
-            console.log("Inicializando pipeline de embeddings por primera vez. Esto puede tardar...");
-            this.instance = await pipeline('feature-extraction', EMBEDDING_MODEL);
-            console.log("Pipeline listo.");
-        }
-        return this.instance;
-    }
-}
-EmbeddingPipeline.instance = null;
-
 // --- Funciones ---
 
-async function generateEmbedding(text) {
-    const extractor = await EmbeddingPipeline.getInstance();
-    const output = await extractor(text, { pooling: 'mean', normalize: true });
-    return Array.from(output.data);
+async function generateEmbeddings(texts) {
+    const response = await fetch(
+        EMBEDDING_MODEL_API_URL,
+        {
+            headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+            method: "POST",
+            body: JSON.stringify({ inputs: texts, options: { wait_for_model: true } }),
+        }
+    );
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Error en la API de Embeddings de Hugging Face: ${errorBody}`);
+    }
+    return await response.json();
 }
 
 function chunkText(text, fileName) {
@@ -47,7 +41,7 @@ function chunkText(text, fileName) {
         const paragraphs = section.split(/\n\s*\n/);
         for (const paragraph of paragraphs) {
             const trimmedParagraph = paragraph.trim();
-            if (trimmedParagraph.length > 200) { // Solo indexar párrafos sustanciales
+            if (trimmedParagraph.length > 200) {
                 chunks.push(`[Fuente: ${fileName}] ${trimmedParagraph}`);
             }
         }
@@ -68,20 +62,23 @@ async function processFile(filePath) {
             return;
         }
 
-        console.log(`  Se encontraron ${chunks.length} fragmentos. Generando embeddings...
-`);
+        console.log(`  Se encontraron ${chunks.length} fragmentos. Generando embeddings en lotes...`);
         
-        const batchSize = 10;
+        const batchSize = 50; // La API de HF puede manejar lotes más grandes
         for (let i = 0; i < chunks.length; i += batchSize) {
             const batchChunks = chunks.slice(i, i + batchSize);
-            const embeddings = await Promise.all(batchChunks.map(chunk => generateEmbedding(chunk)));
+            const embeddings = await generateEmbeddings(batchChunks);
             
+            if (!Array.isArray(embeddings) || embeddings.length !== batchChunks.length) {
+                throw new Error('La respuesta de la API de embeddings no tiene el formato esperado.');
+            }
+
             const vectors = batchChunks.map((chunk, j) => ({
                 content: chunk,
                 embedding: embeddings[j],
             }));
 
-            console.log(`  Insertando lote ${i / batchSize + 1} (${vectors.length} vectores) en la base de datos...
+            console.log(`  Insertando lote ${Math.floor(i / batchSize) + 1} (${vectors.length} vectores) en la base de datos...
 `);
             const { error } = await supabase.from('knowledge_vectors').insert(vectors);
 
@@ -103,14 +100,18 @@ async function main() {
     console.log("== Iniciando el proceso de ingesta de conocimiento ==");
     console.log("======================================================");
     try {
+        // Limpiar la tabla antes de la ingesta para evitar duplicados
+        console.log("Limpiando conocimiento previo de la base de datos...");
+        const { error: deleteError } = await supabase.from('knowledge_vectors').delete().gt('id', 0);
+        if (deleteError) throw new Error(`No se pudo limpiar la tabla: ${deleteError.message}`);
+        console.log("Conocimiento previo eliminado.");
+
         const files = await fs.readdir(ARCHIVE_PATH);
         const markdownFiles = files.filter(file => file.endsWith('.md'));
 
         console.log(`Se encontraron ${markdownFiles.length} archivos .md para procesar.
 `);
         
-        await EmbeddingPipeline.getInstance();
-
         for (const file of markdownFiles) {
             await processFile(path.join(ARCHIVE_PATH, file));
         }

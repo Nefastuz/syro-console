@@ -1,5 +1,4 @@
-// Archivo: api/syro.js (VORO RAG v2.1 con Transformers.js)
-import { pipeline } from '@huggingface/transformers';
+// Archivo: api/syro.js (VORO RAG v2.2 con Hugging Face Inference API)
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
@@ -8,30 +7,28 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
 
 // --- Constantes del Modelo ---
-const EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
+const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2";
 const COMPLETION_MODEL = 'llama3-8b-8192'; 
 const MATCH_THRESHOLD = 0.7;
 const MATCH_COUNT = 10;
 
-// --- Cache para el Pipeline de Embeddings ---
-// Esto es CRÍTICO para el rendimiento en un entorno serverless.
-// El pipeline se crea una vez y se reutiliza en invocaciones posteriores.
-let extractor = null;
-
-class EmbeddingPipeline {
-    static async getInstance() {
-        if (this.instance === null) {
-            this.instance = pipeline('feature-extraction', EMBEDDING_MODEL);
-        }
-        return this.instance;
-    }
-}
-
 // --- Funciones Auxiliares ---
 async function generateEmbedding(text) {
-    const extractor = await EmbeddingPipeline.getInstance();
-    const output = await extractor(text, { pooling: 'mean', normalize: true });
-    return Array.from(output.data);
+    const response = await fetch(
+        EMBEDDING_MODEL_API_URL,
+        {
+            headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` },
+            method: "POST",
+            body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
+        }
+    );
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Error en la API de Embeddings de Hugging Face: ${errorBody}`);
+    }
+    const data = await response.json();
+    // La API devuelve un vector para cada input, incluso si solo hay uno.
+    return data[0];
 }
 
 // --- Handler Principal ---
@@ -44,6 +41,9 @@ export default async function handler(req, res) {
     try {
         // --- Flujo de Memorización (!MEMORIZE) ---
         if (userInput.startsWith('!MEMORIZE')) {
+            if (!process.env.HF_TOKEN) {
+                throw new Error("La variable de entorno HF_TOKEN es necesaria para la memorización.");
+            }
             const contentToMemorize = userInput.replace('!MEMORIZE', '').trim();
             const [key, ...contentParts] = contentToMemorize.split(':');
             const content = `[${key.trim()}] ${contentParts.join(':').trim()}`;
@@ -59,21 +59,25 @@ export default async function handler(req, res) {
         }
 
         // --- Flujo de Consulta (RAG + KHA) ---
-        const queryEmbedding = await generateEmbedding(userInput);
+        let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de Hugging Face (HF_TOKEN).";
 
-        const { data: matchedKnowledge, error: matchError } = await supabase.rpc('match_knowledge', {
-            p_query_embedding: queryEmbedding,
-            p_match_threshold: MATCH_THRESHOLD,
-            p_match_count: MATCH_COUNT,
-        });
+        if (process.env.HF_TOKEN) {
+            const queryEmbedding = await generateEmbedding(userInput);
 
-        if (matchError) {
-            throw new Error(`Error en RPC match_knowledge: ${matchError.message}`);
+            const { data: matchedKnowledge, error: matchError } = await supabase.rpc('match_knowledge', {
+                p_query_embedding: queryEmbedding,
+                p_match_threshold: MATCH_THRESHOLD,
+                p_match_count: MATCH_COUNT,
+            });
+
+            if (matchError) {
+                throw new Error(`Error en RPC match_knowledge: ${matchError.message}`);
+            }
+
+            memoryContext = matchedKnowledge && matchedKnowledge.length > 0
+                ? matchedKnowledge.map(k => `- ${k.content}`).join('\n')
+                : "No se encontró conocimiento relevante en la memoria para esta consulta.";
         }
-
-        const memoryContext = matchedKnowledge && matchedKnowledge.length > 0
-            ? matchedKnowledge.map(k => `- ${k.content}`).join('\n')
-            : "No se encontró conocimiento relevante en la memoria para esta consulta.";
         
         const systemPrompt = `Eres SYRÓ, un agente de IA. Responde de forma concisa y directa. Utiliza el siguiente conocimiento recuperado de tu memoria a largo plazo para informar tu respuesta:\n\n--- INICIO DE MEMORIA ---\n${memoryContext}\n--- FIN DE MEMORIA ---`;
 
