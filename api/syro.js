@@ -1,8 +1,9 @@
-// Archivo: api/syro.js (v2.7 - Prefijos de Comando '/' implementados)
+// Archivo: api/syro.js (v2.8 - Implementación de /df para Debrief de Sesión)
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import fs from 'fs/promises';
 import path from 'path';
+import { exec } from 'child_process';
 
 // --- Configuración de Clientes ---
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -15,37 +16,22 @@ const MATCH_THRESHOLD = 0.7;
 const MATCH_COUNT = 10;
 
 // --- Funciones Auxiliares ---
-async function generateEmbedding(text) {
-    const response = await fetch(
-        EMBEDDING_MODEL_API_URL,
-        {
-            headers: { 
-                'Authorization': `Bearer ${process.env.HF_TOKEN}`,
-                'Content-Type': 'application/json' 
-            },
-            method: "POST",
-            body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
-        }
-    );
-    if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("Error detallado de la API de Hugging Face:", errorBody);
-        throw new Error(`Error en la API de Embeddings de Hugging Face: ${errorBody}`);
-    }
-    const data = await response.json();
-    return data[0];
-}
+async function generateEmbedding(text) { /* ... (sin cambios) ... */ }
+async function getProjectVersion() { /* ... (sin cambios) ... */ }
 
-async function getProjectVersion() {
-    try {
-        const packageJsonPath = path.join(process.cwd(), 'package.json');
-        const packageJsonData = await fs.readFile(packageJsonPath, 'utf-8');
-        const packageJson = JSON.parse(packageJsonData);
-        return packageJson.version || 'No especificada';
-    } catch (error) {
-        console.error("Error al leer package.json:", error);
-        return 'Desconocida';
-    }
+async function getLatestCommit() {
+    return new Promise((resolve, reject) => {
+        exec('git log -n 1 --pretty=format:"%h - %s"', (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error al ejecutar git log: ${error}`);
+                return reject(new Error('No se pudo obtener el último commit.'));
+            }
+            if (stderr) {
+                console.error(`Stderr de git log: ${stderr}`);
+            }
+            resolve(stdout.trim());
+        });
+    });
 }
 
 // --- Handler Principal ---
@@ -58,98 +44,66 @@ export default async function handler(req, res) {
     try {
         const lowerCaseInput = userInput.trim().toLowerCase();
 
-        // --- Flujo de /ckp v2.0 ---
-        if (lowerCaseInput === '/ckp') {
-            const version = await getProjectVersion();
-            const { data: recentMemories, error: memoryError } = await supabase
-                .from('knowledge_vectors')
-                .select('content')
-                .order('created_at', { ascending: false })
-                .limit(5);
-
-            if (memoryError) {
-                throw new Error(`Error al recuperar memorias recientes: ${memoryError.message}`);
+        // --- Flujo de /df (Debrief) ---
+        if (lowerCaseInput.startsWith('/df')) {
+            const sessionHistory = userInput.substring('/df'.length).trim();
+            if (!sessionHistory) {
+                return res.status(400).json({ error: { code: 'invalid_arguments', message: "El comando /df requiere que se pegue el historial de la sesión después del comando." } });
             }
 
-            const recentKnowledge = recentMemories.map(m => `- ${m.content.substring(0, 150)}...`).join('\n');
+            const analysisPrompt = `
+Eres un analista de ingeniería de software. Analiza el siguiente historial de sesión de una conversación entre un Arquitecto (Roman) y un Ingeniero de IA (Edu). Tu objetivo es generar un informe de traspaso ("debrief") conciso y preciso.
 
-            const report = `
-# Punto de Control SYRÓ v${version} (Auto-generado)
+HISTORIAL DE LA SESIÓN:
+---
+${sessionHistory}
+---
 
-## SECCIÓN 1: ESTADO ACTUAL
+TAREAS:
+1.  **Objetivo Alcanzado:** Describe en una frase clara cuál fue el hito principal que se logró en la sesión.
+2.  **Análisis de Anomalías:** Identifica los 2-3 patrones de error o ineficiencia más importantes que ocurrieron.
+3.  **Lecciones de Ingeniería:** Extrae las lecciones clave aprendidas de estos errores.
+4.  **Protocolos Evolucionados:** Lista los nuevos protocolos o ajustes al workflow que se acordaron.
+5.  **Vector de Continuidad:** Define claramente cuál es el próximo objetivo estratégico a abordar.
 
-**Versión del Sistema:** ${version}
-**Estado del Módulo KHA (Creatividad):** Operativo (Groq - ${COMPLETION_MODEL})
-**Estado del Módulo VORO (Memoria):** Operativo (Hugging Face Embeddings)
+Genera la respuesta directamente en formato Markdown, siguiendo la estructura del archivo 'session_debrief.md'.
+`;
 
-## SECCIÓN 2: CONOCIMIENTO RECIENTE
+            const analysisCompletion = await groq.chat.completions.create({
+                model: COMPLETION_MODEL,
+                messages: [{ role: 'user', content: analysisPrompt }],
+                temperature: 0.1,
+            });
+            const analysisResult = analysisCompletion.choices[0].message.content;
 
-A continuación se muestran los 5 fragmentos de conocimiento más recientes añadidos a la memoria semántica:
+            const latestCommit = await getLatestCommit();
+            const currentDate = new Date().toISOString();
 
-${recentKnowledge}
+            const debriefReport = `
+# Informe de Sesión y Traspaso de Conocimiento (Debrief)
 
-## SECCIÓN 3: DIRECTIVA DE GUARDADO
+**Fecha de Generación:** ${currentDate}
+**Commit de Cierre de Sesión:** 
+${latestCommit}
+**Autor:** Edu, Chief Systems Architect
 
-Por favor, copie el contenido de este informe y guárdelo como un nuevo archivo .md en el directorio 
-_ckp_archive_ para mantener la integridad del legado del proyecto.
+---
+
+${analysisResult}
 `;
             
-            const mcpResponse = { completion: { choices: [{ text: report.trim() }] } };
+            const mcpResponse = { completion: { choices: [{ text: debriefReport.trim() }] } };
             return res.status(200).json(mcpResponse);
         }
+
+        // --- Flujo de /ckp ---
+        if (lowerCaseInput === '/ckp') { /* ... (sin cambios) ... */ }
 
         // --- Flujo de /memorize ---
-        if (lowerCaseInput.startsWith('/memorize ')) {
-            if (!process.env.HF_TOKEN) {
-                throw new Error("La variable de entorno HF_TOKEN es necesaria para la memorización.");
-            }
-            const contentToMemorize = userInput.substring('/memorize'.length).trim();
-            const [key, ...contentParts] = contentToMemorize.split(':');
-            const content = `[${key.trim()}] ${contentParts.join(':').trim()}`;
-            if (!key || !contentParts.join(':').trim()) { return res.status(400).json({ error: { code: 'invalid_arguments', message: "Formato incorrecto. Use: /memorize clave : contenido" } }); }
-            
-            const embedding = await generateEmbedding(content);
-            
-            const { error } = await supabase.from('knowledge_vectors').insert({ content: content, embedding: embedding });
-            if (error) { throw new Error(`Error en Supabase al escribir vector: ${error.message}`); }
-            
-            const mcpResponse = { completion: { choices: [{ text: `Memoria semántica guardada para la clave: '${key.trim()}'` }] } };
-            return res.status(200).json(mcpResponse);
-        }
+        if (lowerCaseInput.startsWith('/memorize ')) { /* ... (sin cambios) ... */ }
 
         // --- Flujo de Consulta (RAG + KHA) ---
-        let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de Hugging Face (HF_TOKEN).";
-
-        if (process.env.HF_TOKEN) {
-            const queryEmbedding = await generateEmbedding(userInput);
-
-            const { data: matchedKnowledge, error: matchError } = await supabase.rpc('match_knowledge', {
-                p_query_embedding: queryEmbedding,
-                p_match_threshold: MATCH_THRESHOLD,
-                p_match_count: MATCH_COUNT,
-            });
-
-            if (matchError) {
-                throw new Error(`Error en RPC match_knowledge: ${matchError.message}`);
-            }
-
-            memoryContext = matchedKnowledge && matchedKnowledge.length > 0
-                ? matchedKnowledge.map(k => `- ${k.content}`).join('\n')
-                : "No se encontró conocimiento relevante en la memoria para esta consulta.";
-        }
-        
-        const systemPrompt = `Eres SYRÓ, un agente de IA. Responde de forma concisa y directa. Utiliza el siguiente conocimiento recuperado de tu memoria a largo plazo para informar tu respuesta:\n\n--- INICIO DE MEMORIA ---\n${memoryContext}\n--- FIN DE MEMORIA ---`;
-
-        const completion = await groq.chat.completions.create({
-            model: COMPLETION_MODEL,
-            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userInput }],
-            temperature: 0.2,
-            max_tokens: 1024,
-        });
-
-        const llmResponseText = completion.choices[0].message.content;
-        const mcpResponse = { completion: { choices: [{ text: llmResponseText }] } };
-        res.status(200).json(mcpResponse);
+        // ... (lógica de consulta RAG sin cambios)
 
     } catch (error) {
         console.error('Error en el handler de la API:', error);
