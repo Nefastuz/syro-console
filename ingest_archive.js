@@ -1,11 +1,13 @@
-// Archivo: ingest_archive.js (Adaptado para Hugging Face Inference API)
+// Archivo: ingest_archive.js (v1.1 - Con manejo especial para la Constitución)
 import 'dotenv/config';
 import fs from 'fs/promises';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import { pipeline } from '@huggingface/transformers';
 
 // --- Configuración ---
 const ARCHIVE_PATH = path.join(process.cwd(), '_ckp_archive');
+const CONSTITUTION_FILE = '000_constitution.md';
 const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2";
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY || !process.env.HF_TOKEN) {
@@ -34,6 +36,11 @@ async function generateEmbeddings(texts) {
 }
 
 function chunkText(text, fileName) {
+    // La constitución no se divide, se trata como un bloque único.
+    if (fileName === CONSTITUTION_FILE) {
+        return [`[Fuente: ${fileName}] ${text.trim()}`];
+    }
+
     const sections = text.split(/SECCIÓN \d+/);
     const chunks = [];
     for (const section of sections) {
@@ -62,7 +69,8 @@ async function processFile(filePath) {
             return;
         }
 
-        console.log(`  Se encontraron ${chunks.length} fragmentos. Generando embeddings en lotes...`);
+        console.log(`  Se encontraron ${chunks.length} fragmentos. Generando embeddings en lotes...
+`);
         
         const batchSize = 50; // La API de HF puede manejar lotes más grandes
         for (let i = 0; i < chunks.length; i += batchSize) {
@@ -102,14 +110,23 @@ async function main() {
     try {
         // Limpiar la tabla antes de la ingesta para evitar duplicados
         console.log("Limpiando conocimiento previo de la base de datos...");
-        const { error: deleteError } = await supabase.from('knowledge_vectors').delete().gt('id', 0);
+        const { error: deleteError } = await supabase.from('knowledge_vectors').delete().gt('id', 0); // Usar 'neq' para borrar todo
         if (deleteError) throw new Error(`No se pudo limpiar la tabla: ${deleteError.message}`);
         console.log("Conocimiento previo eliminado.");
 
         const files = await fs.readdir(ARCHIVE_PATH);
         const markdownFiles = files.filter(file => file.endsWith('.md'));
 
-        console.log(`Se encontraron ${markdownFiles.length} archivos .md para procesar.
+        // Procesar la constitución primero para asegurar su existencia.
+        const constitutionIndex = markdownFiles.indexOf(CONSTITUTION_FILE);
+        if (constitutionIndex > -1) {
+            const constitutionFile = markdownFiles.splice(constitutionIndex, 1)[0];
+            await processFile(path.join(ARCHIVE_PATH, constitutionFile));
+        } else {
+            console.warn("ADVERTENCIA: No se encontró el archivo de constitución (000_constitution.md).");
+        }
+
+        console.log(`Se encontraron ${markdownFiles.length} archivos de legado para procesar.
 `);
         
         for (const file of markdownFiles) {
