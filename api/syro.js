@@ -1,4 +1,4 @@
-// Archivo: api/syro.js (VORO RAG v2.2 con Hugging Face Inference API)
+// Archivo: api/syro.js (v2.3 - URL de API Corregida)
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
@@ -7,7 +7,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
 
 // --- Constantes del Modelo ---
-const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2";
+// [CORRECCIÓN] URL de la API de Inferencia actualizada a la ruta correcta.
+const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2";
 const COMPLETION_MODEL = 'llama3-8b-8192'; 
 const MATCH_THRESHOLD = 0.7;
 const MATCH_COUNT = 10;
@@ -27,7 +28,6 @@ async function generateEmbedding(text) {
         throw new Error(`Error en la API de Embeddings de Hugging Face: ${errorBody}`);
     }
     const data = await response.json();
-    // La API devuelve un vector para cada input, incluso si solo hay uno.
     return data[0];
 }
 
@@ -39,7 +39,6 @@ export default async function handler(req, res) {
     if (!userInput) { return res.status(400).json({ error: { code: 'invalid_request', message: 'MCP request must include a `prompt.text` field.' } }); }
 
     try {
-        // --- Flujo de Memorización (!MEMORIZE) ---
         if (userInput.startsWith('!MEMORIZE')) {
             if (!process.env.HF_TOKEN) {
                 throw new Error("La variable de entorno HF_TOKEN es necesaria para la memorización.");
@@ -58,7 +57,6 @@ export default async function handler(req, res) {
             return res.status(200).json(mcpResponse);
         }
 
-        // --- Flujo de Consulta (RAG + KHA) ---
         let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de Hugging Face (HF_TOKEN).";
 
         if (process.env.HF_TOKEN) {
