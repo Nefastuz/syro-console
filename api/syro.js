@@ -9,7 +9,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
 
 // --- Constantes del Modelo ---
-const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/models/Xenova/bge-small-en-v1.5";
+const EMBEDDING_MODEL_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/Xenova/bge-small-en-v1.5";
 const COMPLETION_MODEL = 'llama3-8b-8192'; 
 const MATCH_THRESHOLD = 0.7;
 const MATCH_COUNT = 10;
