@@ -1,31 +1,31 @@
-// Archivo: api/syro.js (v2.8 - OpenAI Embeddings)
+// Archivo: api/syro.js (v3.0 - Google AI Embeddings)
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs/promises';
 import path from 'path';
 
 // --- Configuración de Clientes ---
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // Cliente específico para OpenAI
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 // --- Constantes del Modelo ---
-const EMBEDDING_MODEL = 'text-embedding-3-small';
-const COMPLETION_MODEL = 'llama3-8b-8192'; 
-const MATCH_THRESHOLD = 0.7;
+const EMBEDDING_MODEL = 'embedding-001'; // El modelo de Google
+const COMPLETION_MODEL = 'llama3-8b-8192';
+const MATCH_THRESHOLD = 0.7; // Ajustar si es necesario para el nuevo modelo
 const MATCH_COUNT = 10;
 
 // --- Funciones Auxiliares ---
 async function generateEmbedding(text) {
     try {
-        const response = await openai.embeddings.create({
-            model: EMBEDDING_MODEL,
-            input: text.replace(/\n/g, ' '),
-        });
-        return response.data[0].embedding;
+        const model = genAI.getGenerativeModel({ model: EMBEDDING_MODEL });
+        const result = await model.embedContent(text);
+        const embedding = result.embedding;
+        return embedding.values;
     } catch (error) {
-        console.error("Error detallado de la API de OpenAI Embeddings:", error);
-        throw new Error(`Error en la API de Embeddings de OpenAI: ${error.message}`);
+        console.error("Error detallado de la API de Google AI Embeddings:", error);
+        throw new Error(`Error en la API de Embeddings de Google AI: ${error.message}`);
     }
 }
 
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     try {
         const lowerCaseInput = userInput.trim().toLowerCase();
 
-        // --- Flujo de /ckp v2.0 ---
+        // --- Flujo de /ckp v3.0 ---
         if (lowerCaseInput === '/ckp') {
             const version = await getProjectVersion();
             const { data: recentMemories, error: memoryError } = await supabase
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 
 **Versión del Sistema:** ${version}
 **Estado del Módulo KHA (Creatividad):** Operativo (Groq - ${COMPLETION_MODEL})
-**Estado del Módulo VORO (Memoria):** Operativo (OpenAI Embeddings - ${EMBEDDING_MODEL})
+**Estado del Módulo VORO (Memoria):** Operativo (Google AI Embeddings - ${EMBEDDING_MODEL})
 
 ## SECCIÓN 2: CONOCIMIENTO RECIENTE
 
@@ -93,13 +93,12 @@ _ckp_archive_ para mantener la integridad del legado del proyecto.
 
         // --- Flujo de /memorize ---
         if (lowerCaseInput.startsWith('/memorize ')) {
-            if (!process.env.OPENAI_API_KEY) {
-                throw new Error("La variable de entorno OPENAI_API_KEY es necesaria para la memorización.");
+            if (!process.env.GOOGLE_API_KEY) {
+                throw new Error("La variable de entorno GOOGLE_API_KEY es necesaria para la memorización.");
             }
             const contentToMemorize = userInput.substring('/memorize'.length).trim();
             const [key, ...contentParts] = contentToMemorize.split(':');
-            const content = `[${key.trim()}] ${contentParts.join(':').trim()}
-`;
+            const content = `[${key.trim()}] ${contentParts.join(':').trim()}`;
             if (!key || !contentParts.join(':').trim()) { return res.status(400).json({ error: { code: 'invalid_arguments', message: "Formato incorrecto. Use: /memorize clave : contenido" } }); }
             
             const embedding = await generateEmbedding(content);
@@ -112,9 +111,9 @@ _ckp_archive_ para mantener la integridad del legado del proyecto.
         }
 
         // --- Flujo de Consulta (RAG + KHA) ---
-        let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de OpenAI (OPENAI_API_KEY).";
+        let memoryContext = "La memoria semántica (VORO) está desactivada porque no se proporcionó una clave de Google AI (GOOGLE_API_KEY).";
 
-        if (process.env.OPENAI_API_KEY) {
+        if (process.env.GOOGLE_API_KEY) {
             const queryEmbedding = await generateEmbedding(userInput);
 
             const { data: matchedKnowledge, error: matchError } = await supabase.rpc('match_knowledge', {
